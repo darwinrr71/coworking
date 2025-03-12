@@ -1,10 +1,8 @@
-Workspace: Samlar information om arbetsområdet
-
 # Coworking Plattform
 
 Det här projektet är en coworking-plattform som gör det möjligt för användare att boka rum, hantera sina bokningar och autentisera användare. Här följer en beskrivning av användningen av varje komponent i projektet.
 
-Projektstruktur
+## Projektstruktur
 
     index.js: Huvudfil som konfigurerar och startar Express-servern, hanterar rutter och konfigurerar Socket.io.
     docker-compose.yml: Konfigurationsfil för Docker Compose som definierar de nödvändiga tjänsterna, som Redis.
@@ -25,98 +23,103 @@ Projektstruktur
     src/services/socketService.js: Tjänst för att hantera realtidskommunikation med Socket.io.
     src/utils/generateToken.js: Verktyg för att generera JWT-token.
 
-Användning av Komponenter
+## Användning av Komponenter
 
-index.js
+- [index.js]
 
-    Konfigurerar och startar Express-servern.
-    Definierar autentisering, rum och bokningsrutter.
-    Initierar Socket.io-tjänsten.
-    Hanterar rotvägen och skickar periodiska händelser.
+  - Konfigurerar och startar Express-servern.
+  - Definierar autentisering, rum och bokningsrutter.
+  - Initierar Socket.io-tjänsten.
+  - Hanterar rotvägen och skickar periodiska händelser.
 
-docker-compose.yml
+- [docker-compose.yml]
 
-    Definierar Redis-tjänsten och mappar port 6379 från containern till port 6379 på den lokala maskinen.
+  Definierar Redis-tjänsten och mappar port 6379 från containern till port 6379 på den lokala maskinen.
 
-package.json
+- [package.json]
 
-    Listar projektets beroenden, som Express, Prisma, Redis, etc.
-    Definierar skript för att starta servern i utvecklingsläge (npm run dev).
+  Listar projektets beroenden, som Express, Prisma, Redis, etc.
+  Definierar skript för att starta servern i utvecklingsläge (npm run dev).
 
-schema.prisma
+- [schema.prisma]
 
-    Definierar databasens schema, inklusive tabellerna User, Room och Booking, samt deras relationer.
+  Definierar databasens schema, inklusive tabellerna User, Room och Booking, samt deras relationer.
 
-redis.js
+- [redis.js]
 
-    Konfigurerar Redis-klienten med miljövariablerna REDIS_HOST och REDIS_PORT.
+  Konfigurerar Redis-klienten med miljövariablerna REDIS_HOST och REDIS_PORT.
 
-src/controllers
-authController.js
+## src/controllers
 
-    register: Registrerar en ny användare, hashar lösenordet och genererar en JWT-token.
-    login: Autentiserar en användare, jämför lösenordet och genererar en JWT-token.
+- [authController.js]
 
-bookingController.js
+  register: Registrerar en ny användare, hashar lösenordet och genererar en JWT-token.
+  login: Autentiserar en användare, jämför lösenordet och genererar en JWT-token.
 
-    createBooking: Skapar en ny bokning, verifierar tillgängligheten för rummet.
-    getUserBookings: Hämtar alla bokningar för en användare.
-    updateBooking: Uppdaterar en befintlig bokning.
-    deleteBooking: Tar bort en befintlig bokning.
+- [bookingController.js]
 
-roomController.js
+  createBooking: Skapar en ny bokning, verifierar tillgängligheten för rummet.
+  getUserBookings: Hämtar alla bokningar för en användare.
+  updateBooking: Uppdaterar en befintlig bokning.
+  deleteBooking: Tar bort en befintlig bokning.
 
-    createRoom: Skapar ett nytt rum.
-    getAllRooms: Hämtar alla rum, använder Redis för cachelagring.
-    updateRoom: Uppdaterar ett befintligt rum.
-    deleteRoom: Tar bort ett befintligt rum.
+- [roomController.js]
 
-src/middleware
-authMiddleware.js
+  createRoom: Skapar ett nytt rum.
+  getAllRooms: Hämtar alla rum, använder Redis för cachelagring.
+  updateRoom: Uppdaterar ett befintligt rum.
+  deleteRoom: Tar bort ett befintligt rum.
 
-    authenticate: Verifierar JWT-token i begärans header.
-    authorize: Verifierar om användaren har rätt roll för att komma åt en rutt.
+## src/middleware
 
-errorHandler.js
+- [authMiddleware.js]
 
-    Hanterar fel och mappar felmeddelanden till HTTP-statuskoder och svarsmeldingar.
+  authenticate: Verifierar JWT-token i begärans header.
+  authorize: Verifierar om användaren har rätt roll för att komma åt en rutt.
 
-src/routes
-authRoutes.js
+- [errorHandler.js]
 
-    Definierar rutter för användarregistrering (/user/register) och inloggning (/user/login).
+  Hanterar fel och mappar felmeddelanden till HTTP-statuskoder och svarsmeldingar.
 
-bookingRoutes.js
+## src/routes
 
-    Definierar rutter för hantering av bokningar:
-        Skapa bokning: POST /booking/create
-        Hämta bokningar: GET /booking/allbookings
-        Uppdatera bokning: PUT /booking/update/:id
-        Ta bort bokning: DELETE /booking/delete/:id
+- [authRoutes.js]
 
-roomRoutes.js
+  Definierar rutter för användarregistrering (/user/register) och inloggning (/user/login).
 
-    Definierar rutter för hantering av rum:
-        Skapa rum: POST /room/create
-        Hämta rum: GET /room/allrooms
-        Uppdatera rum: PUT /room/update/:id
-        Ta bort rum: DELETE /room/delete/:id
+- [bookingRoutes.js]
 
-socketService.js
+  ## Definierar rutter för hantering av bokningar:
 
-    init: Initierar Socket.io-servern.
-    emit: Skickar ett evenemang till alla anslutna klienter.
+        - Skapa bokning: POST /booking/create
+        - Hämta bokningar: GET /booking/allbookings
+        - Uppdatera bokning: PUT /booking/update/:id
+        - Ta bort bokning: DELETE /booking/delete/:id
 
-generateToken.js
+- [roomRoutes.js]
 
-    Genererar en JWT-token med hjälp av biblioteket jsonwebtoken.
+  ## Definierar rutter för hantering av rum:
 
-Hur man Kör Projektet
+        - Skapa rum: POST /room/create
+        - Hämta rum: GET /room/allrooms
+        - Uppdatera rum: PUT /room/update/:id
+        - Ta bort rum: DELETE /room/delete/:id
 
-    Klona repo.
-    Installera beroenden med npm install.
-    Konfigurera miljövariabler i en .env-fil.
-    Starta servern i utvecklingsläge med npm run dev.
-    Använd Docker Compose för att starta Redis-tjänsten med docker-compose up.
+- [socketService.js]
+
+  init: Initierar Socket.io-servern.
+  emit: Skickar ett evenemang till alla anslutna klienter.
+
+- [generateToken.js]
+
+  Genererar en JWT-token med hjälp av biblioteket jsonwebtoken.
+
+## Hur man Kör Projektet
+
+    - Klona repo.
+    - Installera beroenden med npm install.
+    - Konfigurera miljövariabler i en .env-fil.
+    - Starta servern i utvecklingsläge med npm run dev.
+    - Använd Docker Compose för att starta Redis-tjänsten med docker-compose up.
 
 Det var allt! Nu har du en översikt över hur varje komponent fungerar i projektet.
