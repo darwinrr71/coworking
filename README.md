@@ -4,66 +4,66 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 
 ## Projektstruktur
 
-    index.js: Huvudfil som konfigurerar och startar Express-servern, hanterar rutter och konfigurerar Socket.io.
-    docker-compose.yml: Konfigurationsfil för Docker Compose som definierar de nödvändiga tjänsterna, som Redis.
-    package.json: npm-konfigurationsfil som listar projektets beroenden och skript.
-    prisma/schema.prisma: Prisma-schemafil som definierar tabeller och relationer i databasen.
-    src/config/redis.js: Konfiguration för Redis-klienten.
-    src/controllers: Innehåller kontrollerna som hanterar logiken för rutterna.
-        authController.js: Hanterar registrering och inloggning av användare.
-        bookingController.js: Hanterar skapande, hämtning, uppdatering och borttagning av bokningar.
-        roomController.js: Hanterar skapande, hämtning, uppdatering och borttagning av rum.
-    src/middleware: Innehåller mellanprogram som används i rutterna.
-        authMiddleware.js: Middleware för autentisering och auktorisering av användare.
-        errorHandler.js: Middleware för att hantera fel.
-    src/routes: Innehåller appens rutter.
-        authRoutes.js: Rutter för registrering och inloggning av användare.
-        bookingRoutes.js: Rutter för hantering av bokningar.
-        roomRoutes.js: Rutter för hantering av rum.
-    src/services/socketService.js: Tjänst för att hantera realtidskommunikation med Socket.io.
-    src/utils/generateToken.js: Verktyg för att generera JWT-token.
+    - index.js: Huvudfil som konfigurerar och startar Express-servern, hanterar rutter och konfigurerar Socket.io.
+    - docker-compose.yml: Konfigurationsfil för Docker Compose som definierar de nödvändiga tjänsterna, som Redis.
+    - package.json: npm-konfigurationsfil som listar projektets beroenden och skript.
+    - prisma/schema.prisma: Prisma-schemafil som definierar tabeller och relationer i databasen.
+    - src/config/redis.js: Konfiguration för Redis-klienten.
+    - src/controllers: Innehåller kontrollerna som hanterar logiken för rutterna.
+        * authController.js: Hanterar registrering och inloggning av användare.
+        * bookingController.js: Hanterar skapande, hämtning, uppdatering och borttagning av bokningar.
+        * roomController.js: Hanterar skapande, hämtning, uppdatering och borttagning av rum.
+    - src/middleware: Innehåller mellanprogram som används i rutterna.
+        * authMiddleware.js: Middleware för autentisering och auktorisering av användare.
+        * errorHandler.js: Middleware för att hantera fel.
+    - src/routes: Innehåller appens rutter.
+        * authRoutes.js: Rutter för registrering och inloggning av användare.
+        * bookingRoutes.js: Rutter för hantering av bokningar.
+        * roomRoutes.js: Rutter för hantering av rum.
+    - src/services/socketService.js: Tjänst för att hantera realtidskommunikation med Socket.io.
+    - src/utils/generateToken.js: Verktyg för att generera JWT-token.
 
 ## Användning av Komponenter
 
-- [index.js]
+- **index.js**
 
-  - Konfigurerar och startar Express-servern.
+  - _Konfigurerar och startar Express-servern._
   - Definierar autentisering, rum och bokningsrutter.
   - Initierar Socket.io-tjänsten.
   - Hanterar rotvägen och skickar periodiska händelser.
 
-- [docker-compose.yml]
+- **docker-compose.yml**
 
   Definierar Redis-tjänsten och mappar port 6379 från containern till port 6379 på den lokala maskinen.
 
-- [package.json]
+- **package.json**
 
   Listar projektets beroenden, som Express, Prisma, Redis, etc.
   Definierar skript för att starta servern i utvecklingsläge (npm run dev).
 
-- [schema.prisma]
+- **schema.prisma**
 
   Definierar databasens schema, inklusive tabellerna User, Room och Booking, samt deras relationer.
 
-- [redis.js]
+- **redis.js**
 
   Konfigurerar Redis-klienten med miljövariablerna REDIS_HOST och REDIS_PORT.
 
 ## src/controllers
 
-- [authController.js]
+- **authController.js**
 
   register: Registrerar en ny användare, hashar lösenordet och genererar en JWT-token.
   login: Autentiserar en användare, jämför lösenordet och genererar en JWT-token.
 
-- [bookingController.js]
+- **bookingController.js**
 
-  createBooking: Skapar en ny bokning, verifierar tillgängligheten för rummet.
-  getUserBookings: Hämtar alla bokningar för en användare.
-  updateBooking: Uppdaterar en befintlig bokning.
-  deleteBooking: Tar bort en befintlig bokning.
+  - createBooking: Skapar en ny bokning, verifierar tillgängligheten för rummet.
+    getUserBookings: Hämtar alla bokningar för en användare.
+    updateBooking: Uppdaterar en befintlig bokning.
+    deleteBooking: Tar bort en befintlig bokning.
 
-- [roomController.js]
+- **roomController.js**
 
   createRoom: Skapar ett nytt rum.
   getAllRooms: Hämtar alla rum, använder Redis för cachelagring.
@@ -72,22 +72,22 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 
 ## src/middleware
 
-- [authMiddleware.js]
+- **authMiddleware.js**
 
   authenticate: Verifierar JWT-token i begärans header.
   authorize: Verifierar om användaren har rätt roll för att komma åt en rutt.
 
-- [errorHandler.js]
+- **errorHandler.js**
 
   Hanterar fel och mappar felmeddelanden till HTTP-statuskoder och svarsmeldingar.
 
 ## src/routes
 
-- [authRoutes.js]
+- **authRoutes.js**
 
   Definierar rutter för användarregistrering (/user/register) och inloggning (/user/login).
 
-- [bookingRoutes.js]
+- **bookingRoutes.js**
 
   ## Definierar rutter för hantering av bokningar:
 
@@ -96,7 +96,7 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
         - Uppdatera bokning: PUT /booking/update/:id
         - Ta bort bokning: DELETE /booking/delete/:id
 
-- [roomRoutes.js]
+- **roomRoutes.js**
 
   ## Definierar rutter för hantering av rum:
 
@@ -105,12 +105,12 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
         - Uppdatera rum: PUT /room/update/:id
         - Ta bort rum: DELETE /room/delete/:id
 
-- [socketService.js]
+- **socketService.js**
 
   init: Initierar Socket.io-servern.
   emit: Skickar ett evenemang till alla anslutna klienter.
 
-- [generateToken.js]
+- **generateToken.js**
 
   Genererar en JWT-token med hjälp av biblioteket jsonwebtoken.
 
