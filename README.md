@@ -4,24 +4,24 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 
 ## Projektstruktur
 
-    - **index.js:** Huvudfil som konfigurerar och startar Express-servern, hanterar rutter och konfigurerar Socket.io.
-    - **docker-compose.yml:** Konfigurationsfil för Docker Compose som definierar de nödvändiga tjänsterna, som Redis.
-    - **package.json:** npm-konfigurationsfil som listar projektets beroenden och skript.
-    - **prisma/schema.prisma:** Prisma-schemafil som definierar tabeller och relationer i databasen.
-    - **src/config/redis.js:** Konfiguration för Redis-klienten.
-    - **src/controllers:** Innehåller kontrollerna som hanterar logiken för rutterna.
-      - authController.js: Hanterar registrering och inloggning av användare.
-      - bookingController.js: Hanterar skapande, hämtning, uppdatering och borttagning av bokningar.
-      - roomController.js: Hanterar skapande, hämtning, uppdatering och borttagning av rum.
-    - **src/middleware:** Innehåller mellanprogram som används i rutterna.
-      - authMiddleware.js: Middleware för autentisering och auktorisering av användare.
-      - errorHandler.js:** Middleware för att hantera fel.
-    - **src/routes:** Innehåller appens rutter.
-      - authRoutes.js: Rutter för registrering och inloggning av användare.
-      - bookingRoutes.js: Rutter för hantering av bokningar.
-      - roomRoutes.js: Rutter för hantering av rum.
-    - **src/services/socketService.js:** Tjänst för att hantera realtidskommunikation med Socket.io.
-    - **src/utils/generateToken.js:** Verktyg för att generera JWT-token.
+- **index.js:** Huvudfil som konfigurerar och startar Express-servern, anterar rutter och konfigurerar Socket.io.
+- **docker-compose.yml:** Konfigurationsfil för Docker Compose som definierar e nödvändiga tjänsterna, som Redis.
+- **package.json:** npm-konfigurationsfil som listar projektets beroenden och kript.
+- **prisma/schema.prisma:** Prisma-schemafil som definierar tabeller och elationer i databasen.
+- **src/config/redis.js:** Konfiguration för Redis-klienten.
+- **src/controllers:** Innehåller kontrollerna som hanterar logiken för utterna.
+  - authController.js: Hanterar registrering och inloggning av användare.
+  - bookingController.js: Hanterar skapande, hämtning, uppdatering och borttagning av bokningar.
+  - roomController.js: Hanterar skapande, hämtning, uppdatering och borttagning av rum.
+- **src/middleware:** Innehåller mellanprogram som används i rutterna.
+  - authMiddleware.js: Middleware för autentisering och auktorisering av användare.
+  - errorHandler.js:\*\* Middleware för att hantera fel.
+- **src/routes:** Innehåller appens rutter.
+  - authRoutes.js: Rutter för registrering och inloggning av användare.
+  - bookingRoutes.js: Rutter för hantering av bokningar.
+  - roomRoutes.js: Rutter för hantering av rum.
+- **src/services/socketService.js:** Tjänst för att hantera ealtidskommunikation med Socket.io.
+- **src/utils/generateToken.js:** Verktyg för att generera JWT-token.
 
 ## Användning av Komponenter
 
