@@ -1,3 +1,20 @@
+/**---------------------------------------------------------
+ * Project: COWORKING PLATFORM
+ * Developer Full Stack: Darwin Rengifo
+ * 
+ *      Create Date: 2025-02-10
+ *      Design Name: authRoutes.js
+ *            Tools: Javascript, NodeJs, Express, Prisma, Postgres(In Supabase),
+ *                   JWT, BCRYPT, Redis, Socket.io
+ *        Path Name: < src/routes/authRoutes.js >
+ * 
+ * Description:
+ * - redisClient: Create a connection to the Redis server.
+ * - It includes the following functions:
+ * - redisClient.on('connect'): Show a message when connected to Redis.
+ * - redisClient.on('error'): Show an error message when there is an error.
+ * - finally: export default redisClient; 
+*-----------------------------------------------------------*/
 import redis from 'redis';
 import dotenv from 'dotenv';
 dotenv.config();
