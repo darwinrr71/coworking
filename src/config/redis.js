@@ -2,7 +2,7 @@ import redis from 'redis';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const redisUrl = process.env.REDIS_URL || process.env.REDIS_HOST;
+const redisUrl = process.env.REDIS_URL || '127.0.0.1';
 
 if (!redisUrl) {
     console.error("Error: REDIS_URL (or REDIS_HOST) is not defined.");
