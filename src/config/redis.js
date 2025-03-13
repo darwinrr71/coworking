@@ -2,9 +2,15 @@ import redis from 'redis';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const redisUrl = process.env.REDIS_URL || process.env.REDIS_HOST;
+
+if (!redisUrl) {
+    console.error("Error: REDIS_URL (or REDIS_HOST) is not defined.");
+    process.exit(1);
+}
+
 const redisClient = redis.createClient({
-    host: process.env.REDIS_HOST || '127.0.0.1',
-    port: process.env.REDIS_PORT || 6379,
+    url: redisUrl,
 });
 
 redisClient.on('connect', () => console.log('Connected to Redis'));
