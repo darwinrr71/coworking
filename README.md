@@ -5,7 +5,6 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 ## Projektstruktur
 
 - **index.js:** Huvudfil som konfigurerar och startar Express-servern, anterar rutter och konfigurerar Socket.io.
-- **docker-compose.yml:** Konfigurationsfil för Docker Compose som definierar e nödvändiga tjänsterna, som Redis.
 - **package.json:** npm-konfigurationsfil som listar projektets beroenden och kript.
 - **prisma/schema.prisma:** Prisma-schemafil som definierar tabeller och elationer i databasen.
 - **src/config/redis.js:** Konfiguration för Redis-klienten.
@@ -31,10 +30,6 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
   - Definierar autentisering, rum och bokningsrutter.
   - Initierar Socket.io-tjänsten.
   - Hanterar rotvägen och skickar periodiska händelser.
-
-- **docker-compose.yml**
-
-  Definierar Redis-tjänsten och mappar port 6379 från containern till port 6379 på den lokala maskinen.
 
 - **package.json**
 
@@ -107,19 +102,177 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 
 - **socketService.js**
 
-  init: Initierar Socket.io-servern.
-  emit: Skickar ett evenemang till alla anslutna klienter.
+  - init: Initierar Socket.io-servern.
+  - emit: Skickar ett evenemang till alla anslutna klienter.
 
 - **generateToken.js**
 
   Genererar en JWT-token med hjälp av biblioteket jsonwebtoken.
 
-## Hur man Kör Projektet
-
-    - Klona repo.
-    - Installera beroenden med npm install.
-    - Konfigurera miljövariabler i en .env-fil.
-    - Starta servern i utvecklingsläge med npm run dev.
-    - Använd Docker Compose för att starta Redis-tjänsten med docker-compose up.
-
 Det var allt! Nu har du en översikt över hur varje komponent fungerar i projektet.
+
+# Guide för att köra Coworking-projektet:
+
+🛠 Verktigen
+
+- [_Thunder Client (Visual Studio Code)_](https://www.thunderclient.com/)
+- [_Railway_](https://Railway.com)
+- [_Supabase_](https://Supabase.com)
+- [_Upstash_](https://Upstash.com)
+
+## Beskrivning
+
+Detta projekt låter användare registrera sig, logga in, skapa mötesrum och hantera bokningar. Backend är hostat på Railway.com, databasen PostgreSQL finns på Supabase.com, och cachehanteringen görs med Redis via Upstash.com.
+
+# 1. Registrering och inloggning
+
+OBS: I GET/POST/PUT/DELETE-förfrågningar för Room och Booking väljer du fliken Body.
+
+- **Registrera en användare**
+
+  _Endpoint:_
+
+  `POST https://coworking-production.up.railway.app/user/register`
+
+  _Body (JSON):_
+
+  ```bash
+  {
+    "username": "User01",
+    "password": "User01",
+    "role": "Admin"
+  }
+  ```
+
+- **Logga in**
+
+  _Endpoint:_
+
+  `POST https://coworking-production.up.railway.app/user/login`
+
+  _Body (JSON):_
+
+  ```bash
+  {
+    "username": "User01",
+    "password": "User01"
+  }
+  ```
+
+  _Svar (JSON):_
+
+  `{
+"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..  ."}`
+
+  Spara token: Kopiera den returnerade token, eftersom den behövs för autentisering i nästa steg.
+
+## 2. Använda token i Thunder Client
+
+För GET/POST/PUT/DELETE-förfrågningar för Room och Booking:
+
+- Gå till fliken Headers i Thunder Client.
+- Välj Authorization.
+- Klistra in den kopierade token i fältet till höger om Authorization.
+
+_Exempel:_
+
+`Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...(token)`
+
+## 3. Hantering av Rum (Rooms)
+
+- **Skapa ett rum**
+
+  _Endpoint:_
+
+  `POST https://coworking-production.up.railway.app/room/create`
+
+  _Body (JSON):_
+
+  ```bash
+  {
+    "name": "Conference room 7",
+    "capacity": 10,
+    "type": "conference"
+  }
+  ```
+
+- **Uppdatera ett rum**
+
+  _Endpoint:_
+
+  `PUT https://coworking-production.up.railway.app/room/update/9`
+
+  _Body (JSON):_
+
+  ```bash
+  {
+    "name": "Conference room 8",
+    "type": "conference"
+  }
+  ```
+
+- **Ta bort ett rum**
+
+  _Endpoint:_
+
+  `DELETE https://coworking-production.up.railway.app/room/delete/9`
+
+- **Lista alla rum**
+
+  _Endpoint:_
+
+  `GET https://coworking-production.up.railway.app/room/allroom`
+
+## 4. Hantering av Bokningar (Bookings)
+
+- **Skapa en bokning**
+
+  _Endpoint:_
+
+  `POST https://coworking-production.up.railway.app/bookning/create`
+
+  _Body (JSON):_
+
+  ```bash
+  {
+   "roomId": "1",
+    "startTime": "2025-06-11T10:00:00Z",
+    "endTime": "2025-06-11T12:00:00Z"
+  }
+  ```
+
+- **Uppdatera en bokning**
+
+  _Endpoint:_
+
+  `PUT https://coworking-production.up.railway.app/bookning/update/1`
+
+  _Body (JSON):_
+
+  ```bash
+  {
+    "roomId": "2",
+    "startTime": "2025-02-12T10:00:00Z",
+    "endTime": "2025-02-12T12:00:00Z"
+  }
+  ```
+
+- **Ta bort en bokning**
+
+  _Endpoint:_
+
+  `DELETE https://coworking-production.up.railway.app/bookning/delete/20`
+
+- **Lista alla bokningar**
+
+  _Endpoint:_
+
+  `GET https://coworking-production.up.railway.app/bookning/allbookning`
+
+## 5. Extra information
+
+    Railway.com: Används för att hosta backend.
+    Supabase.com: Används för att lagra PostgreSQL-databasen.
+    Upstash.com: Används för att hantera cacheminnet med Redis.
+
+Med denna guide kan du enkelt testa och hantera Coworking-projektet i Thunder Client. 🚀
