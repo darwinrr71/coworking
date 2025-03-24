@@ -21,25 +21,6 @@
 import winston from 'winston';
 import path from 'path';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import fs from 'fs';
-
-let logDirectory = null;
-
-// Check if the local directory exists
-const localLogDirectory = path.join(process.cwd(), 'src', 'systemlogs');
-
-if (fs.existsSync(localLogDirectory)) {
-    logDirectory = localLogDirectory;
-} else {
-    // If it doesn't exist, use the /tmp directory in Railway
-    logDirectory = '/tmp/systemlogs';
-    //Ensure the logs directory exists in railway.
-    try {
-        fs.mkdirSync(logDirectory, { recursive: true });
-    } catch (error) {
-        console.error('Error al crear el directorio de logs:', error);
-    }
-}
 
 const logger = winston.createLogger({
     level: 'warn',
@@ -52,7 +33,7 @@ const logger = winston.createLogger({
     ),
     transports: [
         new DailyRotateFile({
-            filename: path.join(logDirectory, 'app-%DATE%.log'),
+            filename: path.join(process.cwd(), 'src', 'systemlogs', 'app-%DATE%.log'),
             datePattern: 'YYYY-MM-DD',
             zippedArchive: true,
             maxSize: '20m',

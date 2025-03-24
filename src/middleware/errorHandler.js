@@ -22,7 +22,21 @@ const errorHandler = (err, req, res, next) => {
     // Map error messages to HTTP status codes and messages
     const messageMap = {
 
-        /** Room  */
+        /** authController.js */
+        'Username, password, and role are required': { status: 400, message: 'Bad Request: Username, password, and role are required' },
+        'User already exists': { status: 400, message: 'Bad Request: A user with this username already exists' },
+        'Invalid credentials': { status: 401, message: 'Unauthorized: Invalid username or password' },
+        'Error registering user': { status: 500, message: 'Internal Server Error: An unexpected error occurred while registering the user' },
+        'Error logging in': { status: 500, message: 'Internal Server Error: An unexpected error occurred while logging in' },
+
+        /** authMiddleware.js */
+        'Unauthorized': { status: 401, message: 'Unauthorized: No valid token provided' },
+        'Invalid token': { status: 401, message: 'Unauthorized: The provided token is invalid or expired' },
+        'User not found': { status: 401, message: 'Unauthorized: User not found in the system' },
+        'Failed to authenticate': { status: 500, message: 'Internal Server Error: Authentication process failed' },
+        'You do not have permissions': { status: 403, message: 'Forbidden: You do not have the necessary permissions' },
+
+        /** roomController.js  */
         'Name and type are required': { status: 400, message: 'Bad Request - Room: Both name and type are required' },
         'Capacity must be a positive integer': { status: 400, message: 'Bad Request - Room: Capacity must be a positive integer greater than 0' },
         'A room with this name already exists': { status: 400, message: 'Bad Request - Room: A room with that name already exists' },
@@ -32,7 +46,7 @@ const errorHandler = (err, req, res, next) => {
         'Error getting rooms': { status: 500, message: 'An unexpected error occurred. Could not retrieve room list. Please try again later.' },
         'Error deleting room': { status: 500, message: 'An unexpected error occurred. Error deleting room. Please review your input or try again later.' },
 
-        /** Booknng */
+        /** booknngController.js */
         'roomId must be a positive integer': { status: 400, message: 'Bad Request - Booking: roomId must be a positive integer greater than 0' },
         'Start and end time are required': { status: 400, message: 'Bad Request - Booking: Both start and end times are required' },
         'startTime and endTime cannot be empty': { status: 400, message: 'Bad Request - Booking: Start and end times cannot be empty' },
@@ -48,27 +62,30 @@ const errorHandler = (err, req, res, next) => {
     // Find the message on the map or return a generic error message
     const response = messageMap[err.message] || { status: 500, message: 'An unexpected error occurred.' };
 
-    // Registra el error en el archivo de logs
+    // Records system activity
 
-    socketService.emit('Booking Deleted', { status: response.status, message: response.message });
+    socketService.emit('System activity', { status: response.status, message: response.message });
 
     if (response.status === 401) {
         // Errores 401 se registran como 'warn'
         logger.warn({
             status: response.status,
             message: response.message,
+            requestUrl: req.originalUrl,
         });
     } else if (response.status >= 500) {
         // Errores 500 se registran como 'error'
         logger.error({
             status: response.status,
             message: response.message,
+            requestUrl: req.originalUrl,
         });
     } else {
         // Errores 400 se registran como 'warn'
         logger.warn({
             status: response.status,
             message: response.message,
+            requestUrl: req.originalUrl,
         });
     }
 

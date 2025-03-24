@@ -37,7 +37,7 @@ const authMiddleware = {
             A 401 error (unauthorized) is returned. 
         **/
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ message: 'Unauthorized' });
+            return next(new Error('Unauthorized')); // Error 401
         }
 
         const token = authHeader.substring(7);
@@ -48,7 +48,7 @@ const authMiddleware = {
         **/
         jwt.verify(token, JWT_SECRET, async (err, decoded) => {
             if (err) {
-                return res.status(401).json({ message: 'Invalid token' });
+                return next(new Error('Invalid token')); // Error 401
             }
 
             try {
@@ -57,14 +57,13 @@ const authMiddleware = {
                 });
 
                 if (!user) {
-                    return res.status(401).json({ message: 'User not found' });
+                    return next(new Error('User not found')); // Error 401
                 }
 
                 req.user = user;
                 next();
             } catch (error) {
-                console.error(error);
-                return res.status(500).json({ message: 'Failed to authenticate' });
+                next(new Error('Failed to authenticate')); // Error 500
             }
         });
     },
@@ -73,7 +72,7 @@ const authMiddleware = {
         return (req, res, next) => {
             // Verify if the user's role is in the array roles.
             if (!roles.includes(req.user.role)) {
-                return res.status(403).json({ message: 'You do not have permissions' });
+                return next(new Error('You do not have permissions')); // Error 403
             }
             next();
         };

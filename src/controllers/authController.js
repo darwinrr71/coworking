@@ -23,13 +23,22 @@ import socketService from '../services/socketService.js';
 const prisma = new PrismaClient();
 
 const authController = {
-    async register(req, res) {
+    async register(req, res, next) {
         try {
             const { username, password, role } = req.body;
 
             // Validate required fields
             if (!username || !password || !role) {
-                return res.status(400).json({ message: 'Username, password, and role are required' });
+                return next(new Error('Username, password, and role are required')); // Error 400
+            }
+
+            // Check if the user already exists
+            const existingUser = await prisma.user.findFirst({
+                where: { username },
+            });
+
+            if (existingUser) {
+                return next(new Error('User already exists')); // Error 400
             }
 
             // Hash password
@@ -49,12 +58,11 @@ const authController = {
 
             res.status(201).json({ token });
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error registering user' });
+            next(new Error('Error registering user')); // Error 500
         }
     },
 
-    async login(req, res) {
+    async login(req, res, next) {
         try {
             const { username, password } = req.body;
 
@@ -66,14 +74,14 @@ const authController = {
             });
 
             if (!user) {
-                return res.status(401).json({ message: 'Invalid credentials' });
+                return next(new Error('Invalid credentials')); // Error 401
             }
 
             // Compare password
             const passwordMatch = await compare(password, user.password);
 
             if (!passwordMatch) {
-                return res.status(401).json({ message: 'Invalid credentials' });
+                return next(new Error('Invalid credentials')); // Error 401
             }
 
             // Geerate a JWT token
@@ -87,8 +95,7 @@ const authController = {
 
             res.json({ token });
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error logging in' });
+            next(new Error('Error logging in')); // Error 500
         }
     },
 };
