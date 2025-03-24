@@ -56,6 +56,11 @@ const authController = {
             // Generate a JWT token
             const token = generateToken(newUser);
 
+            socketService.emit('New User', {
+                message: `${newUser.username} has been created.`,
+                Role: newUser.role
+            });
+
             res.status(201).json({ token });
         } catch (error) {
             next(new Error('Error registering user')); // Error 500
