@@ -4,6 +4,7 @@ node_modules
 # Build directories
 dist
 dist-ssr
+
 # Local environment files
 *.local
 .env
