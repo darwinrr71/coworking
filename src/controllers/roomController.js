@@ -16,32 +16,70 @@
  * - getAllRooms: Get all rooms.
  * - updateRoom: Update a room.
  * - deleteRoom: Delete a room.
+ * - validateRoomInput: Validate the input for creating or updating a room.
+ *                      It checks if the name and type are provided, if the capacity 
+ *                      is a positive integer, and if a room with the same name 
+ *                      already exists.
+ * - The controller uses Prisma to interact with the database.
+ * - The controller uses Redis to cache room data.
+ * - The controller uses Socket.IO to emit room events.
+ * - The controller uses the errorHandler middleware to handle errors.
  * 
- * - finally: await prisma.$disconnect(): 
- *   It always runs, regardless of whether the Try block ends successfully or if an error 
- *   occurs in the Catch block.
 *-----------------------------------------------------------*/
 
 import { PrismaClient } from '@prisma/client';
 import redisClient from '../config/redis.js';
+import socketService from '../services/socketService.js';
 
 const prisma = new PrismaClient();
 
+
+async function validateRoomInput(name, type, capacity, prisma, existingRoomName = null) {
+
+    /** This validation ensures that the name and type fields are present in the request. */
+    if (!name || !type || name.trim() === '' || type.trim() === '') {
+        throw new Error('Name and type are required');
+    }
+
+    /** This validation ensures that the roomId field is a positive integer greater than 0. */
+    if (typeof capacity !== 'number' || capacity <= 0 || !Number.isInteger(capacity)) {
+        throw new Error('Capacity must be a positive integer');
+    }
+
+    const existingRoom = await prisma.room.findUnique({
+        where: { name: name },
+    });
+
+    /** This validation ensures that a room with the same name does not already exist. */
+    if (existingRoom && name !== existingRoomName) {
+        throw new Error('A room with this name already exists');
+    }
+}
+
 const roomController = {
     async createRoom(req, res, next) {
+
         try {
             const { name, capacity, type } = req.body;
+
+            /** Validate input */
+            await validateRoomInput(name, type, capacity, prisma);
+
+            const trimmedName = name.trim();
             const newRoom = await prisma.room.create({
                 data: {
-                    name,
+                    name: trimmedName,
                     capacity,
                     type,
                 },
             });
+
+            // Issue new room notification
+            socketService.emit('New Room', newRoom);
+
             res.status(201).json(newRoom);
         } catch (error) {
-            //console.error(error);
-            next(new Error('Error creating room'));
+            next(error);
         }
     },
 
@@ -57,13 +95,12 @@ const roomController = {
             const rooms = await prisma.room.findMany();
 
             await redisClient.set('rooms', JSON.stringify(rooms), {
-                EX: 3600,
-                NX: true,
+                EX: 3600, // Set the key expiration to 3600 seconds (1 hour)
+                NX: true, // The key will only be set if it does not already exist in Redis.
             });
 
             res.json(rooms);
         } catch (error) {
-            //console.error(error);
             next(new Error('Error getting rooms'));
         }
     },
@@ -72,23 +109,32 @@ const roomController = {
         try {
             const { id } = req.params;
             const { name, capacity, type } = req.body;
+
+            const roomToUpdate = await prisma.room.findUnique({ where: { id: parseInt(id) } });
+            if (!roomToUpdate) {
+                throw new Error('Room not found');
+            }
+
+            await validateRoomInput(name, type, capacity, prisma, roomToUpdate.name);
+
+            const trimmedName = name.trim();
             const updatedRoom = await prisma.room.update({
                 where: {
                     id: parseInt(id),
                 },
                 data: {
-                    name,
+                    name: trimmedName,
                     capacity,
                     type,
                 },
             });
-            if (!updatedRoom) {
-                return res.status(404).json({ message: 'Room not found' });
-            }
+
+            // Issue updated room notification
+            socketService.emit('Room Updated', updatedRoom);
+
             res.json(updatedRoom);
         } catch (error) {
-            //console.error(error);
-            next(new Error('Error updating room'));
+            next(error);
         }
     },
 
@@ -100,9 +146,12 @@ const roomController = {
                     id: parseInt(id),
                 },
             });
+
+            // Issue deleted room notification
+            socketService.emit('Booking Deleted', { roomId: id });
+
             res.status(204).send(); // No Content
         } catch (error) {
-            //console.error(error);
             next(new Error('Error deleting room'));
         }
     },

@@ -27,6 +27,11 @@ const authController = {
         try {
             const { username, password, role } = req.body;
 
+            // Validate required fields
+            if (!username || !password || !role) {
+                return res.status(400).json({ message: 'Username, password, and role are required' });
+            }
+
             // Hash password
             const hashedPassword = await hash(password, 10);
 

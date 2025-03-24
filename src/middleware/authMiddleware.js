@@ -31,7 +31,6 @@ const authMiddleware = {
             Authorization is the header where the token JWT is normally sent in protected applications. 
         **/
         const authHeader = req.headers.authorization;
-        console.log('authHeader: ', authHeader);
 
         /** Verify if authheader does not exist or is empty (! Authheader)
             If the header Authorization is not present in the application, it means that the client did not send a token jwt.

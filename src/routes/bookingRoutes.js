@@ -19,9 +19,9 @@ const router = express.Router();
 import bookingController from '../controllers/bookingController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
-router.post('/bookning/create', authMiddleware.authenticate, bookingController.createBooking);
-router.get('/bookning/allbookning', authMiddleware.authenticate, bookingController.getUserBookings);
-router.put('/bookning/update/:id', authMiddleware.authenticate, bookingController.updateBooking);
-router.delete('/bookning/delete/:id', authMiddleware.authenticate, bookingController.deleteBooking);
+router.post('/booking/create', authMiddleware.authenticate, bookingController.createBooking);
+router.get('/booking/allbooking', authMiddleware.authenticate, bookingController.getUserBookings);
+router.put('/booking/update/:id', authMiddleware.authenticate, bookingController.updateBooking);
+router.delete('/booking/delete/:id', authMiddleware.authenticate, bookingController.deleteBooking);
 
 export default router;

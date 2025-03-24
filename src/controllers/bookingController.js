@@ -13,25 +13,60 @@
  *   requests.
  * - It includes the following functions:
  *  - createBooking: Create a new booking in the database.
- *  - getUserBookings: Get all bookings.
+ *  - getUserBookings: Get all bookings (Admin / User).
  *  - updateBooking: Update a booking.
  *  - deleteBooking: Delete a booking.
+ * - validateBookingInput: Validate the input for creating or updating a booking.
+ * - The controller uses Prisma to interact with the database.
+ * - The controller uses Redis to cache booking data.
+ * - The controller uses Socket.IO to emit booking events.
+ * - The controller uses the errorHandler middleware to handle errors.
  * 
- * - finally: await prisma.$disconnect(): 
- *   It always runs, regardless of whether the Try block ends successfully or if an error 
- *   occurs in the Catch block.
-*-----------------------------------------------------------*/
+ *-----------------------------------------------------------*/
 
 import { PrismaClient } from '@prisma/client';
+import redisClient from '../config/redis.js';
 import socketService from '../services/socketService.js';
+
 const prisma = new PrismaClient();
+
+async function validateBookingInput(roomId, startTime, endTime) {
+
+    /** This validation ensures that the roomId field is a positive integer greater than 0. */
+    if (typeof roomId !== 'number' || roomId <= 0 || !Number.isInteger(roomId)) {
+        throw new Error('roomId must be a positive integer');
+    }
+
+    /** This validation ensures that the startTime and endTime fields are present in the request. Boolean(true/false) */
+    if (!startTime || !endTime) {
+        throw new Error('Start and end time are required');
+    }
+
+    /** This validation ensures that the startTime and endTime fields are not empty, even if they contain only blank spaces. */
+    if (startTime.trim() === '' || endTime.trim() === '') {
+        throw new Error('startTime and endTime cannot be empty');
+    }
+
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid start or end time format');
+    }
+
+    if (endDate.getTime() <= startDate.getTime()) {
+        throw new Error('endTime must be after startTime');
+    }
+}
 
 const bookingController = {
     async createBooking(req, res, next) {
         try {
             const { roomId, startTime, endTime } = req.body;
             const userId = req.user.id;
-            console.log('userId', userId);
+
+            /** Validate input */
+            await validateBookingInput(roomId, startTime, endTime);
 
             /* Check room availability 
                 The code checks if someone has already 
@@ -46,9 +81,11 @@ const bookingController = {
             });
 
             if (overlappingBookings.length > 0) {
-                return next(new Error('Room is not available at this time'));
+                throw new Error('Room is not available at this time');
             }
-
+            if (!overlappingBookings.roomId) {
+                throw new Error('RoomId does not exist');
+            }
             const newBooking = await prisma.booking.create({
                 data: {
                     roomId: parseInt(roomId),
@@ -63,7 +100,7 @@ const bookingController = {
 
             res.status(201).json(newBooking);
         } catch (error) {
-            next(new Error('Error creating booking'));
+            next(error);
         }
     },
 
@@ -71,6 +108,12 @@ const bookingController = {
         try {
             const userId = req.user.id;
             let bookings;
+
+            const cachedBooking = await redisClient.get('getbookings');
+
+            if (cachedBooking) {
+                return res.json(JSON.parse(cachedBooking));
+            }
 
             if (req.user.role === 'Admin') {
                 bookings = await prisma.booking.findMany({
@@ -89,6 +132,11 @@ const bookingController = {
                 });
             }
 
+            await redisClient.set('getbookings', JSON.stringify(bookings), {
+                EX: 3600, // Set the key expiration to 3600 seconds (1 hour)
+                NX: true, // The key will only be set if it does not already exist in Redis.
+            });
+
             res.json(bookings);
         } catch (error) {
             next(new Error('Error getting bookings'));
@@ -106,12 +154,14 @@ const bookingController = {
             });
 
             if (!booking) {
-                return next(new Error('Booking not found'));
+                throw new Error('Booking not found');
             }
 
             if (req.user.role !== 'Admin' && booking.userId !== userId) {
                 return next(new Error('Unauthorized'));
             }
+
+            await validateBookingInput(booking.roomId, startTime, endTime);
 
             const overlappingBookings = await prisma.booking.findMany({
                 where: {
@@ -123,7 +173,7 @@ const bookingController = {
             });
 
             if (overlappingBookings.length > 0) {
-                return next(new Error('Room is not available at this time'));
+                throw new Error('Room is not available at this time');
             }
 
             const updatedBooking = await prisma.booking.update({
@@ -139,7 +189,7 @@ const bookingController = {
 
             res.json(updatedBooking);
         } catch (error) {
-            next(new Error('Error updating booking'));
+            next(error);
         }
     },
 

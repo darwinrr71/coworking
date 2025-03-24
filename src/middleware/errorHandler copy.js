@@ -16,7 +16,6 @@
 *-----------------------------------------------------------*/
 
 import logger from "../utils/logger.js";
-import socketService from '../services/socketService.js';
 
 const errorHandler = (err, req, res, next) => {
     // Map error messages to HTTP status codes and messages
@@ -50,25 +49,34 @@ const errorHandler = (err, req, res, next) => {
 
     // Registra el error en el archivo de logs
 
-    socketService.emit('Booking Deleted', { status: response.status, message: response.message });
-
     if (response.status === 401) {
         // Errores 401 se registran como 'warn'
         logger.warn({
             status: response.status,
             message: response.message,
+            /*message: err.message,
+            stack: err.stack,
+            status: response.status,
+            requestUrl: req.originalUrl,
+            requestMethod: req.method,*/
         });
     } else if (response.status >= 500) {
         // Errores 500 se registran como 'error'
         logger.error({
+            message: err.message,
+            stack: err.stack,
             status: response.status,
-            message: response.message,
+            requestUrl: req.originalUrl,
+            requestMethod: req.method,
         });
     } else {
         // Errores 400 se registran como 'warn'
         logger.warn({
+            message: err.message,
+            stack: err.stack,
             status: response.status,
-            message: response.message,
+            requestUrl: req.originalUrl,
+            requestMethod: req.method,
         });
     }
 

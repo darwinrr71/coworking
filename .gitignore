@@ -7,3 +7,6 @@ dist-ssr
 # Local environment files
 *.local
 .env
+
+# Logs
+src/systemlogs/*

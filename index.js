@@ -59,15 +59,17 @@ app.use(morgan('dev'));
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
 app.use(authRoutes);
 app.use(roomRoutes);
 app.use(bookingRoutes);
 app.use(errorHandler);
 
-
 const server = http.createServer(app);
 socketService.init(server);
-
 
 app.get('/', (req, res) => {
   res.send('Server with Node js, Express and Socket.IO running');

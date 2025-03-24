@@ -21,6 +21,7 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
   - roomRoutes.js: Rutter för hantering av rum.
 - **src/services/socketService.js:** Tjänst för att hantera ealtidskommunikation med Socket.io.
 - **src/utils/generateToken.js:** Verktyg för att generera JWT-token.
+- **src/utils/logger.js:** System log generator.
 
 ## Användning av Komponenter
 
@@ -54,9 +55,9 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 - **bookingController.js**
 
   - createBooking: Skapar en ny bokning, verifierar tillgängligheten för rummet.
-    getUserBookings: Hämtar alla bokningar för en användare.
-    updateBooking: Uppdaterar en befintlig bokning.
-    deleteBooking: Tar bort en befintlig bokning.
+  - getUserBookings: Hämtar alla bokningar för en användare.
+  - updateBooking: Uppdaterar en befintlig bokning.
+  - deleteBooking: Tar bort en befintlig bokning.
 
 - **roomController.js**
 
@@ -86,19 +87,19 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 
   ## Definierar rutter för hantering av bokningar:
 
-        - Skapa bokning: POST /booking/create
-        - Hämta bokningar: GET /booking/allbookings
-        - Uppdatera bokning: PUT /booking/update/:id
-        - Ta bort bokning: DELETE /booking/delete/:id
+  - Skapa bokning: POST /booking/create
+  - Hämta bokningar: GET /booking/allbookings
+  - Uppdatera bokning: PUT /booking/update/:id
+  - Ta bort bokning: DELETE /booking/delete/:id
 
 - **roomRoutes.js**
 
   ## Definierar rutter för hantering av rum:
 
-        - Skapa rum: POST /room/create
-        - Hämta rum: GET /room/allrooms
-        - Uppdatera rum: PUT /room/update/:id
-        - Ta bort rum: DELETE /room/delete/:id
+  - Skapa rum: POST /room/create
+  - Hämta rum: GET /room/allrooms
+  - Uppdatera rum: PUT /room/update/:id
+  - Ta bort rum: DELETE /room/delete/:id
 
 - **socketService.js**
 
@@ -108,6 +109,30 @@ Det här projektet är en coworking-plattform som gör det möjligt för använd
 - **generateToken.js**
 
   Genererar en JWT-token med hjälp av biblioteket jsonwebtoken.
+
+- **logger.js**
+
+  Den här modulen sätter upp ett system för att spara händelser och fel för appen Coworking Platform. Den använder biblioteket Winston för att skapa strukturerade loggar och automatiskt rotera loggfiler varje dag. Loggarna inkluderar tidsstämplar, stackspårningar för fel och sparas i JSON-format för enkel analys.
+
+  - **Huvudfunktioner**
+
+  - Standardloggnivå: varna (sparar varningar och fel).
+  - Loggformat:
+    - Tidsstämpel i formatet ÅÅÅÅ-MM-DD HH:mm:ss.
+    - Stackspårningar för fel.
+    - Utdata i JSON-format.
+  - Loggfilrotation:
+    - Filer skapas dagligen med mönstret app-ÅÅÅÅ-MM-DD.log.
+    - Filer komprimeras automatiskt (zippedArchive).
+    - Maximal storlek per fil: 20 MB.
+    - Maximal lagringstid: 14 dagar.
+
+## Hur man kör Projektet
+
+- Klona repo.
+- Installera beroenden med npm install.
+- Konfigurera miljövariabler i en .env-fil (DATABASE_URL, PORT, JWT_SECRET, REDIS_URL).
+- Starta servern i utvecklingsläge med "npm run dev".
 
 Det var allt! Nu har du en översikt över hur varje komponent fungerar i projektet.
 
@@ -229,7 +254,7 @@ _Exempel:_
 
   _Endpoint:_
 
-  `POST https://coworking-production.up.railway.app/bookning/create`
+  `POST https://coworking-production.up.railway.app/booking/create`
 
   _Body (JSON):_
 
@@ -245,7 +270,7 @@ _Exempel:_
 
   _Endpoint:_
 
-  `PUT https://coworking-production.up.railway.app/bookning/update/1`
+  `PUT https://coworking-production.up.railway.app/booking/update/1`
 
   _Body (JSON):_
 
@@ -261,18 +286,18 @@ _Exempel:_
 
   _Endpoint:_
 
-  `DELETE https://coworking-production.up.railway.app/bookning/delete/20`
+  `DELETE https://coworking-production.up.railway.app/booking/delete/20`
 
 - **Lista alla bokningar**
 
   _Endpoint:_
 
-  `GET https://coworking-production.up.railway.app/bookning/allbookning`
+  `GET https://coworking-production.up.railway.app/booking/allbookning`
 
 ## 5. Extra information
 
-    Railway.com: Används för att hosta backend.
-    Supabase.com: Används för att lagra PostgreSQL-databasen.
-    Upstash.com: Används för att hantera cacheminnet med Redis.
+- Railway.com: Används för att hosta backend.
+- Supabase.com: Används för att lagra PostgreSQL-databasen.
+- Upstash.com: Används för att hantera cacheminnet med Redis.
 
 Med denna guide kan du enkelt testa och hantera Coworking-projektet i Thunder Client. 🚀
