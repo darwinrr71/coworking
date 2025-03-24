@@ -9,4 +9,5 @@ dist-ssr
 .env
 
 # Logs
-src/systemlogs/*
+*.log
+.014dc9f90aa37b5bbf217bc576edccbc482a05ef-audit.json
