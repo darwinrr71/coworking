@@ -80,12 +80,23 @@ const bookingController = {
                 },
             });
 
+            console.log('overlappingBookings', overlappingBookings);
             if (overlappingBookings.length > 0) {
                 throw new Error('Room is not available at this time');
             }
-            if (!overlappingBookings.roomId) {
+
+            /** Verify that the roomID exists in the Room table before creating the booking */
+            const existingRoom = await prisma.room.findFirst({
+                where: {
+                    id: roomId,
+                },
+            });
+
+            console.log('roomId:', roomId, 'Type:', typeof roomId)
+            if (!existingRoom) {
                 throw new Error('RoomId does not exist');
             }
+
             const newBooking = await prisma.booking.create({
                 data: {
                     roomId: parseInt(roomId),
