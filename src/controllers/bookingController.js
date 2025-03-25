@@ -80,7 +80,6 @@ const bookingController = {
                 },
             });
 
-            console.log('overlappingBookings', overlappingBookings);
             if (overlappingBookings.length > 0) {
                 throw new Error('Room is not available at this time');
             }
@@ -92,7 +91,6 @@ const bookingController = {
                 },
             });
 
-            console.log('roomId:', roomId, 'Type:', typeof roomId)
             if (!existingRoom) {
                 throw new Error('RoomId does not exist');
             }
@@ -230,7 +228,6 @@ const bookingController = {
 
             res.status(204).send();
         } catch (error) {
-            console.error(error);
             next(new Error('Error deleting booking'));
         }
     },
