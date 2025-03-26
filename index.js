@@ -51,18 +51,21 @@ const app = express();
 app.use(express.json())
 app.use(responseTime());
 
-
-// Safety Setup with Helmet
+/**
+ * Helmet: Helps protect your application by setting secure HTTP headers. 
+ * Prevents attacks such as clickjacking, XSS (Cross-Site Scripting), 
+ * and content sniffing. 
+ */
 app.use(helmet());
-// Register HTTP requests in the console
+
+/**
+ * Morgan: This is a logging that records HTTP requests to the console. 
+ * It's useful for debugging and monitoring.
+ */
 app.use(morgan('dev'));
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  next();
-});
 app.use(authRoutes);
 app.use(roomRoutes);
 app.use(bookingRoutes);

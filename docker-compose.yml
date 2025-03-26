@@ -1,8 +1,0 @@
-services:
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - "6379:6379"
-    env_file:
-      - .env  # Carga las variables de entorno desde el archivo .env
