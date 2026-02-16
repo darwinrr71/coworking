@@ -1,0 +1,104 @@
+/**
+ * ---------------------------------------------------------
+ * Project: COWORKING PLATFORM
+ * Developer Full Stack: Darwin Rengifo
+ * Create Date: 2025-02-08
+ * Design Name: schema.prisma
+ * Tools: Javascript, NodeJs, Express, Prisma, Postgres(In Supabase),
+ * JWT, BCRYPT
+ * Description:
+ * This file is the schema of the database,
+ * where the tables and relationships are defined.
+ * -----------------------------------------------------------
+ */
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * Role for the user
+ */
+enum Role {
+  User
+  Admin
+}
+
+/**
+ * Type of reserved room
+ */
+enum RoomType {
+  KontorCoworking
+  MotenEvent
+}
+
+/**
+ * Table User
+ */
+model User {
+  id       Int       @id @default(autoincrement())
+  username String    @unique
+  password String
+  role     Role      @default(User)
+  bookings Booking[]
+}
+
+/**
+ * Table Room
+ */
+model Room {
+  id           Int         @id @default(autoincrement())
+  name         String      @unique
+  address      String      @default("")
+  capacity     Int
+  pricePerHour Int         @default(0)
+  squareMeters Int         @default(0)
+  description  String      @default("")
+  type         RoomType
+  bookings     Booking[]
+  images       RoomImage[]
+}
+
+/**
+ * Table RoomImage
+ */
+model RoomImage {
+  id        Int      @id @default(autoincrement())
+  roomId    Int
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  bucket    String   @default("room-images")
+  path      String
+  alt       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roomId, path])
+  @@index([roomId])
+}
+
+/**
+ * Table Booking
+ */
+model Booking {
+  id        Int      @id @default(autoincrement())
+  startTime DateTime
+  endTime   DateTime
+  roomId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  seriesId  String?
+  metadata  Json?
+
+  @@index([roomId])
+  @@index([roomId, startTime])
+  @@index([roomId, endTime])
+  @@index([userId])
+  @@index([seriesId])
+}

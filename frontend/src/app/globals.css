@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #eceff3;
+  --color-ivory: #ffffff;
+  --color-deep: #1d2a38;
+  --color-forest: #4a627b;
+  --color-gold: #c58a2a;
+  --color-stone: #6f8196;
+  --color-ink: #162534;
+  --color-mist: #d2dbe5;
+  --shadow-soft: 0 18px 42px rgba(29, 42, 56, 0.12);
+  --shadow-card: 0 14px 34px rgba(29, 42, 56, 0.1);
+}
+
+@theme inline {
+  --color-background: var(--color-cream);
+  --color-foreground: var(--color-deep);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(920px 620px at 14% -12%, rgba(255, 255, 255, 0.65) 0%, transparent 62%),
+    radial-gradient(860px 560px at 88% 8%, rgba(230, 238, 247, 0.65) 0%, transparent 58%),
+    linear-gradient(135deg, #eceff3 0%, #e3e9f1 100%);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+.page-glow {
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(560px 380px at 22% 22%, rgba(197, 138, 42, 0.1), transparent 62%),
+    radial-gradient(560px 380px at 80% 12%, rgba(46, 91, 136, 0.08), transparent 70%),
+    radial-gradient(460px 340px at 70% 80%, rgba(197, 138, 42, 0.07), transparent 72%);
+  z-index: 0;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(210, 219, 229, 0.95);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+}
+
+.soft-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(210, 219, 229, 0.9);
+  box-shadow: var(--shadow-soft);
+}
+
+.fade-up {
+  animation: fadeUp 0.6s ease-out both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

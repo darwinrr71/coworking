@@ -1,5 +1,77 @@
 # Coworking Plattform
 
+## Struktur (ny)
+- `backend/` innehåller API, Prisma, Redis och Socket.IO.
+- `frontend/` innehåller Next.js-appen med UI, animationer och CMS-integration.
+
+## Starta lokalt
+- Backend: `cd backend` → `npm install` → `npm run dev`
+- Frontend: `cd frontend` → `npm install` → `npm run dev` (port 6000)
+
+
+## Bookings flexible – pasos para correr
+
+### Kommandon (lokalt)
+```bash
+cd backend
+npm install
+# skapa migrationen lokalt (om inte redan körd)
+npx prisma migrate dev -n add-booking-series
+# uppdatera Prisma Client
+npx prisma generate
+# starta backend
+npm run dev
+
+cd ..\frontend
+npm install
+# starta frontend
+npm run dev
+```
+
+### Manuell checklista
+- Logga in och hämta en JWT-token.
+- Öppna `/bookings`, välj rum och datum, se att tillgängliga tider visas.
+- Testa `Valda datum` med 2 datum: förhandsgranskning visar antal och tider, bekräfta skapandet.
+- Testa `Återkommande` (veckovis/månadsvis) och verifiera att konflikter blockar skapandet.
+
+### cURL-exempel
+```bash
+# validate
+curl -X POST http://localhost:4000/api/bookings/validate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"roomId":1,"intervals":[{"startAt":"2026-02-10T09:00:00.000Z","endAt":"2026-02-10T10:00:00.000Z"}]}'
+
+# bulk
+curl -X POST http://localhost:4000/api/bookings/bulk \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"roomId":1,"intervals":[{"startAt":"2026-02-10T09:00:00.000Z","endAt":"2026-02-10T10:00:00.000Z"},{"startAt":"2026-02-11T09:00:00.000Z","endAt":"2026-02-11T10:00:00.000Z"}],"metadata":{"mode":"VALDA_DATUM"}}'
+
+# availability
+curl "http://localhost:4000/api/availability?from=2026-02-10T00:00:00.000Z&to=2026-02-10T23:59:59.999Z&roomIds=1&slotMinutes=30" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### (Valfritt) DB-skydd mot overlaps
+- SQL-fil: `backend/prisma/manual/booking_exclude_constraint.sql`
+- Innan du kör SQL-filen, verifiera att inga overlaps finns:
+```sql
+SELECT b1.id, b1."roomId", b1."startTime", b1."endTime"
+FROM "Booking" b1
+WHERE EXISTS (
+  SELECT 1 FROM "Booking" b2
+  WHERE b2."roomId" = b1."roomId"
+    AND b2.id <> b1.id
+    AND b1."startTime" < b2."endTime"
+    AND b1."endTime" > b2."startTime"
+);
+```
+- Applicera manuellt (psql):
+```bash
+psql "$DATABASE_URL" -f backend/prisma/manual/booking_exclude_constraint.sql
+```
+
 Det här projektet är en coworking-plattform som gör det möjligt för användare att boka rum, hantera sina bokningar och autentisera användare. Här följer en beskrivning av användningen av varje komponent i projektet.
 
 ## Projektstruktur
@@ -217,7 +289,7 @@ _Exempel:_
   {
     "name": "Conference room 7",
     "capacity": 10,
-    "type": "conference"
+    "type": "MotenEvent"
   }
   ```
 
@@ -232,7 +304,7 @@ _Exempel:_
   ```bash
   {
     "name": "Conference room 8",
-    "type": "conference"
+    "type": "MotenEvent"
   }
   ```
 
