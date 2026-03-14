@@ -17,7 +17,7 @@ export default function LiveNotifications() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:9000";
     const socket: Socket = io(socketUrl, { withCredentials: true });
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 

@@ -6,64 +6,14 @@
     "auditLog": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\.935e3568b44bb68a8d1a70558055a10c7d0fd456-audit.json",
     "files": [
         {
-            "date": 1770022450134,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-02.log",
-            "hash": "235a9a449ba703164c1545fd90dc1afac49131ec45b8db8359cb12caa13d521b"
+            "date": 1772885979541,
+            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-03-07.log",
+            "hash": "da438fc849c2a968283e6e80c2a16cabf5aab2fea414d81587981d43ec064360"
         },
         {
-            "date": 1770110938243,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-03.log",
-            "hash": "00b27e1386c4051c15d78aa9f87fb94c07518ff4b45bfe823cdb733fbd731a21"
-        },
-        {
-            "date": 1770163656080,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-04.log",
-            "hash": "e09e674438470a19cc8a7be86d31e5ca8f32da198442a20932a71e2972809e2a"
-        },
-        {
-            "date": 1770370195386,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-06.log",
-            "hash": "38813c961c4d1f5152a3e73e27713c0e6687e7eb59c131cf6ff4ba64500ffea3"
-        },
-        {
-            "date": 1770419128437,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-07.log",
-            "hash": "dde4b30777c91e32112a778ef6545b786d4aa3646329c1ecd0737cb8e3a82c14"
-        },
-        {
-            "date": 1770740909749,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-10.log",
-            "hash": "22e0171bf49963617c81fee3e1a799b8d8fb9e258bad3ba3173cefb7f73f5f78"
-        },
-        {
-            "date": 1770827770555,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-11.log",
-            "hash": "fcc3ebacad45a62f12e011c502a049debd3a8186785a51cba74bda84c454fe91"
-        },
-        {
-            "date": 1770916739713,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-12.log",
-            "hash": "5842ce3565b84a2632297cac69ecd93f908142a6dcb770184254d92e05470e2f"
-        },
-        {
-            "date": 1770995030165,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-13.log",
-            "hash": "82e89f08d5c12424df1f25962eae18106e664be14ebe89fff69c7d4501e63485"
-        },
-        {
-            "date": 1771071244152,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-14.log",
-            "hash": "431fe388aa6cc06cb61e389f65ad73745863a4094d6e138104f53b20e3acff79"
-        },
-        {
-            "date": 1771110869929,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-15.log",
-            "hash": "f326e0708793595fa466571fe78d9d430a2b7357ce62ff5d0df2c21eac8fd045"
-        },
-        {
-            "date": 1771226164830,
-            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-02-16.log",
-            "hash": "63fa4aa4eac161b683ab6a7b2259a716ca7e2a6abfb68b3644e54414dadbae66"
+            "date": 1773485811770,
+            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-03-14.log",
+            "hash": "b3e047e2aa22380590a9b2b089c0aced725464babd288323c9ab93fedb407382"
         }
     ],
     "hashType": "sha256"
