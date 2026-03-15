@@ -1,6 +1,14 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,7 +41,7 @@ const FILTERS: { id: RoomFilter; label: string }[] = [
   { id: "MotenEvent", label: ROOM_TYPE_LABELS.MotenEvent },
 ];
 const HOUR_OPTIONS = Array.from({ length: 15 }, (_, index) =>
-  String(index + 8).padStart(2, "0")
+  String(index + 8).padStart(2, "0"),
 );
 
 type AvailabilityResponse = {
@@ -73,12 +81,16 @@ function RoomCardComponent({
 
   const handlePrev = useCallback(() => {
     if (!hasImages) return;
-    setActiveIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
+    setActiveIndex((prev) =>
+      prev === 0 ? galleryImages.length - 1 : prev - 1,
+    );
   }, [galleryImages.length, hasImages]);
 
   const handleNext = useCallback(() => {
     if (!hasImages) return;
-    setActiveIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1));
+    setActiveIndex((prev) =>
+      prev === galleryImages.length - 1 ? 0 : prev + 1,
+    );
   }, [galleryImages.length, hasImages]);
 
   useEffect(() => {
@@ -99,7 +111,6 @@ function RoomCardComponent({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleNext, handlePrev, isLightboxOpen]);
-
 
   return (
     <div className="glass-panel flex h-full flex-col overflow-hidden rounded-xl">
@@ -159,7 +170,9 @@ function RoomCardComponent({
                 onClick={() => setActiveIndex(index)}
                 aria-label={`Visa bild ${index + 1}`}
                 className={`h-2.5 w-2.5 rounded-full transition ${
-                  index === activeIndex ? "bg-white" : "bg-white/50 hover:bg-white/80"
+                  index === activeIndex
+                    ? "bg-white"
+                    : "bg-white/50 hover:bg-white/80"
                 }`}
               />
             ))}
@@ -222,7 +235,9 @@ function RoomCardComponent({
             )}
           </div>
         </div>
-        <p className="mt-2 min-h-[2.2rem] text-sm text-(--color-forest)">{room.description}</p>
+        <p className="mt-2 min-h-[2.2rem] text-sm text-(--color-forest)">
+          {room.description}
+        </p>
         <div className="mt-auto space-y-3 pt-1">
           <div className="flex flex-wrap items-center gap-3 text-sm text-(--color-forest)">
             <span className="rounded-full bg-white/80 px-4 py-2 font-semibold text-(--color-deep)">
@@ -279,20 +294,20 @@ function RoomCardComponent({
                     >
                       X
                     </button>
-                     <button
-                       type="button"
-                       onClick={handlePrev}
-                       className="absolute left-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full bg-white/80 px-4 py-3 text-sm font-semibold text-(--color-deep) opacity-100 shadow-[0_12px_28px_rgba(29,42,56,0.2)] transition-all duration-300 sm:opacity-0 sm:group-hover/lightbox:opacity-100"
-                     >
-                       ‹
-                     </button>
-                     <button
-                       type="button"
-                       onClick={handleNext}
-                       className="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full bg-white/80 px-4 py-3 text-sm font-semibold text-(--color-deep) opacity-100 shadow-[0_12px_28px_rgba(29,42,56,0.2)] transition-all duration-300 sm:opacity-0 sm:group-hover/lightbox:opacity-100"
-                     >
-                       ›
-                     </button>
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      className="absolute left-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full bg-white/80 px-4 py-3 text-sm font-semibold text-(--color-deep) opacity-100 shadow-[0_12px_28px_rgba(29,42,56,0.2)] transition-all duration-300 sm:opacity-0 sm:group-hover/lightbox:opacity-100"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full bg-white/80 px-4 py-3 text-sm font-semibold text-(--color-deep) opacity-100 shadow-[0_12px_28px_rgba(29,42,56,0.2)] transition-all duration-300 sm:opacity-0 sm:group-hover/lightbox:opacity-100"
+                    >
+                      ›
+                    </button>
                   </div>
                   <div className="mt-3 rounded-2xl border border-white/20 bg-black/40 p-3">
                     <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
@@ -326,7 +341,7 @@ function RoomCardComponent({
                 </div>
               </div>
             </div>,
-            document.body
+            document.body,
           )
         : null}
     </div>
@@ -336,6 +351,20 @@ const RoomCard = memo(RoomCardComponent);
 RoomCard.displayName = "RoomCard";
 
 export default function RoomsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
+          <p className="text-sm text-(--color-stone)">Laddar rum...</p>
+        </div>
+      }
+    >
+      <RoomsPageClient />
+    </Suspense>
+  );
+}
+
+function RoomsPageClient() {
   const router = useRouter();
   const todayIso = new Date().toLocaleDateString("en-CA");
   const searchParams = useSearchParams();
@@ -346,7 +375,8 @@ export default function RoomsPage() {
   });
   const { data: me } = useQuery({
     queryKey: ["me"],
-    queryFn: () => apiFetch<{ user: { username: string; role: string } }>("/api/me"),
+    queryFn: () =>
+      apiFetch<{ user: { username: string; role: string } }>("/api/me"),
     retry: false,
     staleTime: 60_000,
   });
@@ -359,9 +389,13 @@ export default function RoomsPage() {
   const requestedDate = searchParams.get("date");
   const requestedHour = searchParams.get("hour");
   const requestedHourFilter =
-    requestedHour && /^\d{2}$/.test(requestedHour) ? Number(requestedHour) : NaN;
+    requestedHour && /^\d{2}$/.test(requestedHour)
+      ? Number(requestedHour)
+      : NaN;
   const normalizedRequestedHour =
-    Number.isFinite(requestedHourFilter) && requestedHourFilter >= 8 && requestedHourFilter <= 22
+    Number.isFinite(requestedHourFilter) &&
+    requestedHourFilter >= 8 &&
+    requestedHourFilter <= 22
       ? String(requestedHourFilter).padStart(2, "0")
       : null;
   const requestedTypeFilter: RoomFilter =
@@ -386,12 +420,15 @@ export default function RoomsPage() {
       const query = params.toString();
       router.replace(query ? `/rooms?${query}` : "/rooms");
     },
-    [router, searchParams]
+    [router, searchParams],
   );
 
   const scrollToResults = useCallback(() => {
     requestAnimationFrame(() => {
-      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     });
   }, []);
 
@@ -434,7 +471,10 @@ export default function RoomsPage() {
     }
     return rooms;
   }, [data, requestedPeople, selectedType]);
-  const roomIds = useMemo(() => filteredRooms.map((room) => room.id), [filteredRooms]);
+  const roomIds = useMemo(
+    () => filteredRooms.map((room) => room.id),
+    [filteredRooms],
+  );
   const roomIdsParam = useMemo(() => roomIds.join(","), [roomIds]);
 
   const availabilityQuery = useQuery({
@@ -453,7 +493,9 @@ export default function RoomsPage() {
       const availabilityPath = isAuthenticated
         ? "/api/availability"
         : "/api/availability/public";
-      return apiFetch<AvailabilityResponse>(`${availabilityPath}?${params.toString()}`);
+      return apiFetch<AvailabilityResponse>(
+        `${availabilityPath}?${params.toString()}`,
+      );
     },
     enabled: hasAvailabilityFilter && roomIds.length > 0,
   });
@@ -505,7 +547,8 @@ export default function RoomsPage() {
       totalCount: visibleRooms.length,
     };
   }, [availabilityByRoom, filteredRooms, hasAvailabilityFilter]);
-  const { visibleRooms, freeCount, busyCount, totalCount } = availabilitySummary;
+  const { visibleRooms, freeCount, busyCount, totalCount } =
+    availabilitySummary;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
@@ -513,24 +556,32 @@ export default function RoomsPage() {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-semibold text-(--color-deep)">Alla rum</h1>
+              <h1 className="text-3xl font-semibold text-(--color-deep)">
+                Alla rum
+              </h1>
               <p className="mt-2 text-sm text-(--color-forest)">
                 Se aktuella rum och tillgänglighet i realtid.
               </p>
-              {(selectedDate || requestedHour || requestedPeople || requestedType) && (
+              {(selectedDate ||
+                requestedHour ||
+                requestedPeople ||
+                requestedType) && (
                 <p className="mt-2 text-xs text-(--color-stone)">
-                  Filter: {selectedDate ? `Datum ${selectedDate}` : "Datum valfritt"} |{" "}
+                  Filter:{" "}
+                  {selectedDate ? `Datum ${selectedDate}` : "Datum valfritt"} |{" "}
                   {selectedHour ? `Tid ${selectedHour}:00` : "Tid valfri"} |{" "}
                   {Number.isFinite(requestedPeople) && requestedPeople > 0
                     ? `Minst ${requestedPeople} personer`
                     : "Kapacitet valfri"}
                 </p>
               )}
-              {hasAvailabilityFilter && !availabilityQuery.isLoading && !availabilityQuery.isError && (
-                <p className="mt-1 text-xs text-(--color-stone)">
-                  {freeCount} fria för {selectedHour}:00.
-                </p>
-              )}
+              {hasAvailabilityFilter &&
+                !availabilityQuery.isLoading &&
+                !availabilityQuery.isError && (
+                  <p className="mt-1 text-xs text-(--color-stone)">
+                    {freeCount} fria för {selectedHour}:00.
+                  </p>
+                )}
             </div>
             {isAdmin && (
               <Link href="/rooms/new">
@@ -559,23 +610,23 @@ export default function RoomsPage() {
             </span>
             <div className="w-full overflow-x-auto pb-1 sm:w-auto sm:overflow-visible sm:pb-0">
               <div className="inline-flex min-w-max gap-2 rounded-full bg-white/75 p-1 shadow-[0_8px_20px_rgba(29,42,56,0.08)]">
-              {FILTERS.map((filter) => {
-                const isActive = filter.id === selectedType;
-                return (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    onClick={() => handleTypeSelect(filter.id)}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                      isActive
-                        ? "bg-(--color-deep) text-white shadow-[0_6px_14px_rgba(29,42,56,0.22)]"
-                        : "text-(--color-forest) hover:bg-white"
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                );
-              })}
+                {FILTERS.map((filter) => {
+                  const isActive = filter.id === selectedType;
+                  return (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => handleTypeSelect(filter.id)}
+                      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                        isActive
+                          ? "bg-(--color-deep) text-white shadow-[0_6px_14px_rgba(29,42,56,0.22)]"
+                          : "text-(--color-forest) hover:bg-white"
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -611,7 +662,9 @@ export default function RoomsPage() {
               </p>
             )}
             {selectedDate && !selectedHour && (
-              <p className="text-xs text-(--color-stone)">Ahora elige un horario.</p>
+              <p className="text-xs text-(--color-stone)">
+                Ahora elige un horario.
+              </p>
             )}
           </div>
         </div>
@@ -629,23 +682,30 @@ export default function RoomsPage() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-stone)">
                 Fria
               </p>
-              <p className="mt-2 text-xl font-semibold text-(--color-forest)">{freeCount}</p>
+              <p className="mt-2 text-xl font-semibold text-(--color-forest)">
+                {freeCount}
+              </p>
             </div>
             <div className="rounded-2xl bg-white/75 p-3 text-center">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-stone)">
                 Upptagna
               </p>
-              <p className="mt-2 text-xl font-semibold text-(--color-deep)">{busyCount}</p>
+              <p className="mt-2 text-xl font-semibold text-(--color-deep)">
+                {busyCount}
+              </p>
             </div>
             <div className="rounded-2xl bg-white/75 p-3 text-center">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-stone)">
                 Totalt
               </p>
-              <p className="mt-2 text-xl font-semibold text-(--color-stone)">{totalCount}</p>
+              <p className="mt-2 text-xl font-semibold text-(--color-stone)">
+                {totalCount}
+              </p>
             </div>
           </div>
           <p className="mt-4 text-xs text-(--color-stone)">
-            Välj datum + tid för att se exakt tillgänglighet per rum. Resultaten sorteras med fria rum först.
+            Välj datum + tid för att se exakt tillgänglighet per rum. Resultaten
+            sorteras med fria rum först.
           </p>
           <button
             type="button"
@@ -657,10 +717,16 @@ export default function RoomsPage() {
         </aside>
       </div>
 
-      {isLoading && <p className="mt-8 text-sm text-(--color-stone)">Laddar rum...</p>}
-      {error && <p className="mt-8 text-sm text-red-500">{(error as Error).message}</p>}
+      {isLoading && (
+        <p className="mt-8 text-sm text-(--color-stone)">Laddar rum...</p>
+      )}
+      {error && (
+        <p className="mt-8 text-sm text-red-500">{(error as Error).message}</p>
+      )}
       {availabilityQuery.isError && (
-        <p className="mt-3 text-xs text-red-500">{(availabilityQuery.error as Error).message}</p>
+        <p className="mt-3 text-xs text-red-500">
+          {(availabilityQuery.error as Error).message}
+        </p>
       )}
       {isLoading && (
         <div className="mt-8 grid gap-6 sm:mt-10 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -692,7 +758,9 @@ export default function RoomsPage() {
             isAdmin={isAdmin}
             isAuthenticated={isAuthenticated}
             availabilityStatus={
-              hasAvailabilityFilter ? (availabilityByRoom.get(room.id) ?? "BUSY") : null
+              hasAvailabilityFilter
+                ? (availabilityByRoom.get(room.id) ?? "BUSY")
+                : null
             }
             selectedHour={selectedHour}
           />
@@ -700,7 +768,8 @@ export default function RoomsPage() {
         {!visibleRooms.length && !isLoading && (
           <div className="glass-panel rounded-3xl p-6">
             <p className="text-sm text-(--color-stone)">
-              Inga rum matchar din filtrering. Prova annan rumstyp, kapacitet eller tid.
+              Inga rum matchar din filtrering. Prova annan rumstyp, kapacitet
+              eller tid.
             </p>
             <button
               type="button"
@@ -715,12 +784,3 @@ export default function RoomsPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
