@@ -47,7 +47,7 @@ export default function Navigation() {
           href="/"
           className="max-w-[62vw] truncate text-lg font-semibold tracking-wide text-(--color-deep) sm:max-w-none sm:text-xl"
         >
-          Finita Hubbb
+          Finita Hubbbbbb
         </Link>
 
         <nav className="hidden items-center gap-8 text-base font-semibold text-(--color-forest) md:flex">
