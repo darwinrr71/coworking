@@ -671,7 +671,7 @@ function BookingsPageClient() {
                 {...register("roomId")}
               >
                 <option value="" disabled>
-                  Välj rummmmmmmm
+                  Välj rum
                 </option>
                 {rooms?.map((room) => (
                   <option key={room.id} value={room.id}>
