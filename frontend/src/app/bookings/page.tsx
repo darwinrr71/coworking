@@ -2,7 +2,7 @@
 
 /* eslint-disable react-hooks/static-components, react-hooks/set-state-in-effect */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -58,7 +58,11 @@ type AvailabilityResponse = {
 
 type ValidateResponse = {
   ok: boolean;
-  conflicts: Array<{ startAt: string; endAt: string; existingBookingId?: number }>;
+  conflicts: Array<{
+    startAt: string;
+    endAt: string;
+    existingBookingId?: number;
+  }>;
 };
 
 const WEEKDAYS = [
@@ -76,7 +80,7 @@ const BOOKING_DRAFT_STORAGE_KEY = "booking-form-draft-v1";
 const requiredString = (message: string) =>
   z.preprocess(
     (value) => (typeof value === "string" ? value : ""),
-    z.string().min(1, message)
+    z.string().min(1, message),
   );
 
 const requiredTime = (requiredMessage: string, formatMessage: string) =>
@@ -85,21 +89,20 @@ const requiredTime = (requiredMessage: string, formatMessage: string) =>
     z
       .string()
       .min(1, requiredMessage)
-      .refine((value) => (value.length === 0 ? true : /^\d{2}$/.test(value)), formatMessage)
+      .refine(
+        (value) => (value.length === 0 ? true : /^\d{2}$/.test(value)),
+        formatMessage,
+      )
       .refine((value) => {
         if (value.length === 0) return true;
         const hour = Number(value.slice(0, 2));
         return Number.isFinite(hour) && hour >= 8 && hour <= 22;
-      }, "Tid måste vara mellan 08 och 22")
+      }, "Tid måste vara mellan 08 och 22"),
   );
 
 const bookingFormSchema = z
   .object({
-    roomId: z
-      .coerce
-      .number()
-      .int()
-      .positive("Rum krävs"),
+    roomId: z.coerce.number().int().positive("Rum krävs"),
     startDate: requiredString("Startdatum krävs"),
     startTime: requiredTime("Starttid krävs", "Starttid måste vara HH"),
     endDate: requiredString("Slutdatum krävs"),
@@ -114,7 +117,7 @@ const bookingFormSchema = z
     {
       message: "Sluttid måste vara efter starttid",
       path: ["endTime"],
-    }
+    },
   );
 
 type BookingFormInput = z.infer<typeof bookingFormSchema>;
@@ -135,7 +138,7 @@ const buildIntervals = (
   selectedDates: string[],
   recurrenceType: RecurrenceType,
   selectedWeekdays: number[],
-  monthDay: number
+  monthDay: number,
 ): Interval[] => {
   const startAt = `${values.startDate}T${values.startTime}:00`;
   const endAt = `${values.endDate}T${values.endTime}:00`;
@@ -196,14 +199,18 @@ const buildIntervals = (
     return intervals;
   }
 
-  const monthCursor = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), 1);
+  const monthCursor = new Date(
+    rangeStart.getFullYear(),
+    rangeStart.getMonth(),
+    1,
+  );
   const lastMonth = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), 1);
 
   while (monthCursor.getTime() <= lastMonth.getTime()) {
     const candidate = new Date(
       monthCursor.getFullYear(),
       monthCursor.getMonth(),
-      monthDay
+      monthDay,
     );
     if (
       candidate.getMonth() === monthCursor.getMonth() &&
@@ -223,14 +230,31 @@ const buildIntervals = (
 };
 
 export default function BookingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
+          <p className="text-sm text-(--color-stone)">Laddar bokningar...</p>
+        </div>
+      }
+    >
+      <BookingsPageClient />
+    </Suspense>
+  );
+}
+
+function BookingsPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const todayIso = new Date().toLocaleDateString("en-CA");
   const [mode, setMode] = useState<BookingMode>("ENKEL");
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [pendingDate, setPendingDate] = useState("");
-  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>("WEEKLY");
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [recurrenceType, setRecurrenceType] =
+    useState<RecurrenceType>("WEEKLY");
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([
+    1, 2, 3, 4, 5,
+  ]);
   const [monthDay, setMonthDay] = useState(1);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const [showDraftRestoredNotice, setShowDraftRestoredNotice] = useState(false);
@@ -240,7 +264,8 @@ export default function BookingsPage() {
   } | null>(null);
   const { data: me, isLoading: isLoadingMe } = useQuery({
     queryKey: ["me"],
-    queryFn: () => apiFetch<{ user: { username: string; role: string } }>("/api/me"),
+    queryFn: () =>
+      apiFetch<{ user: { username: string; role: string } }>("/api/me"),
     retry: false,
   });
   const isAuthenticated = !!me?.user;
@@ -295,10 +320,13 @@ export default function BookingsPage() {
       intervals: Interval[];
       metadata?: Record<string, unknown>;
     }) =>
-      apiFetch<{ createdCount: number; seriesId?: string }>("/api/bookings/bulk", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+      apiFetch<{ createdCount: number; seriesId?: string }>(
+        "/api/bookings/bulk",
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      ),
     onSuccess: () => {
       setSummary(null);
       setShowDraftRestoredNotice(false);
@@ -318,12 +346,25 @@ export default function BookingsPage() {
     resolver: zodResolver(bookingFormSchema),
   });
 
-  const watchedRoomId = useWatch({ control, name: "roomId" }) as number | undefined;
-  const watchedStartDate = useWatch({ control, name: "startDate" }) as string | undefined;
-  const watchedStartTime = useWatch({ control, name: "startTime" }) as string | undefined;
-  const watchedEndDate = useWatch({ control, name: "endDate" }) as string | undefined;
-  const watchedEndTime = useWatch({ control, name: "endTime" }) as string | undefined;
-  const endDateMin = watchedStartDate && watchedStartDate > todayIso ? watchedStartDate : todayIso;
+  const watchedRoomId = useWatch({ control, name: "roomId" }) as
+    | number
+    | undefined;
+  const watchedStartDate = useWatch({ control, name: "startDate" }) as
+    | string
+    | undefined;
+  const watchedStartTime = useWatch({ control, name: "startTime" }) as
+    | string
+    | undefined;
+  const watchedEndDate = useWatch({ control, name: "endDate" }) as
+    | string
+    | undefined;
+  const watchedEndTime = useWatch({ control, name: "endTime" }) as
+    | string
+    | undefined;
+  const endDateMin =
+    watchedStartDate && watchedStartDate > todayIso
+      ? watchedStartDate
+      : todayIso;
 
   const requestedRoomId = useMemo(() => {
     const rawValue = searchParams.get("roomId");
@@ -337,15 +378,22 @@ export default function BookingsPage() {
     (overrides?: Partial<BookingFormInput>): BookingDraft => {
       const formValues = getValues();
       const normalizedRoomId =
-        typeof formValues.roomId === "number" && Number.isFinite(formValues.roomId)
+        typeof formValues.roomId === "number" &&
+        Number.isFinite(formValues.roomId)
           ? formValues.roomId
           : undefined;
       const normalizedStartDate =
-        typeof formValues.startDate === "string" ? formValues.startDate : undefined;
+        typeof formValues.startDate === "string"
+          ? formValues.startDate
+          : undefined;
       const normalizedStartTime =
-        typeof formValues.startTime === "string" ? formValues.startTime : undefined;
-      const normalizedEndDate = typeof formValues.endDate === "string" ? formValues.endDate : undefined;
-      const normalizedEndTime = typeof formValues.endTime === "string" ? formValues.endTime : undefined;
+        typeof formValues.startTime === "string"
+          ? formValues.startTime
+          : undefined;
+      const normalizedEndDate =
+        typeof formValues.endDate === "string" ? formValues.endDate : undefined;
+      const normalizedEndTime =
+        typeof formValues.endTime === "string" ? formValues.endTime : undefined;
       const mergedValues: Partial<BookingFormInput> = {
         roomId: overrides?.roomId ?? normalizedRoomId,
         startDate: overrides?.startDate ?? normalizedStartDate,
@@ -364,7 +412,15 @@ export default function BookingsPage() {
         form: mergedValues,
       };
     },
-    [getValues, mode, recurrenceType, selectedDates, selectedWeekdays, monthDay, pendingDate]
+    [
+      getValues,
+      mode,
+      recurrenceType,
+      selectedDates,
+      selectedWeekdays,
+      monthDay,
+      pendingDate,
+    ],
   );
 
   const persistDraft = useCallback(
@@ -372,10 +428,10 @@ export default function BookingsPage() {
       if (typeof window === "undefined") return;
       window.sessionStorage.setItem(
         BOOKING_DRAFT_STORAGE_KEY,
-        JSON.stringify(buildDraft(overrides))
+        JSON.stringify(buildDraft(overrides)),
       );
     },
-    [buildDraft]
+    [buildDraft],
   );
 
   const clearDraft = useCallback(() => {
@@ -391,18 +447,27 @@ export default function BookingsPage() {
         const parsedDraft = JSON.parse(rawDraft) as BookingDraft;
         setShowDraftRestoredNotice(true);
         if (parsedDraft.mode) setMode(parsedDraft.mode);
-        if (parsedDraft.recurrenceType) setRecurrenceType(parsedDraft.recurrenceType);
-        if (Array.isArray(parsedDraft.selectedDates)) setSelectedDates(parsedDraft.selectedDates);
+        if (parsedDraft.recurrenceType)
+          setRecurrenceType(parsedDraft.recurrenceType);
+        if (Array.isArray(parsedDraft.selectedDates))
+          setSelectedDates(parsedDraft.selectedDates);
         if (Array.isArray(parsedDraft.selectedWeekdays)) {
           setSelectedWeekdays(parsedDraft.selectedWeekdays);
         }
-        if (typeof parsedDraft.monthDay === "number") setMonthDay(parsedDraft.monthDay);
-        if (typeof parsedDraft.pendingDate === "string") setPendingDate(parsedDraft.pendingDate);
-        if (parsedDraft.form?.roomId) setValue("roomId", Number(parsedDraft.form.roomId));
-        if (parsedDraft.form?.startDate) setValue("startDate", String(parsedDraft.form.startDate));
-        if (parsedDraft.form?.startTime) setValue("startTime", String(parsedDraft.form.startTime));
-        if (parsedDraft.form?.endDate) setValue("endDate", String(parsedDraft.form.endDate));
-        if (parsedDraft.form?.endTime) setValue("endTime", String(parsedDraft.form.endTime));
+        if (typeof parsedDraft.monthDay === "number")
+          setMonthDay(parsedDraft.monthDay);
+        if (typeof parsedDraft.pendingDate === "string")
+          setPendingDate(parsedDraft.pendingDate);
+        if (parsedDraft.form?.roomId)
+          setValue("roomId", Number(parsedDraft.form.roomId));
+        if (parsedDraft.form?.startDate)
+          setValue("startDate", String(parsedDraft.form.startDate));
+        if (parsedDraft.form?.startTime)
+          setValue("startTime", String(parsedDraft.form.startTime));
+        if (parsedDraft.form?.endDate)
+          setValue("endDate", String(parsedDraft.form.endDate));
+        if (parsedDraft.form?.endTime)
+          setValue("endTime", String(parsedDraft.form.endTime));
       } catch {
         window.sessionStorage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
       }
@@ -469,7 +534,9 @@ export default function BookingsPage() {
         roomIds: String(watchedRoomId),
         slotMinutes: "60",
       });
-      return apiFetch<AvailabilityResponse>(`/api/availability?${params.toString()}`);
+      return apiFetch<AvailabilityResponse>(
+        `/api/availability?${params.toString()}`,
+      );
     },
     enabled: isAuthenticated && !!watchedRoomId && !!availabilityDate,
   });
@@ -489,7 +556,7 @@ export default function BookingsPage() {
             String(slotDate.getDate()).padStart(2, "0"),
           ].join("-");
           return slotDateKey === availabilityDate;
-        })
+        }),
       );
   }, [availabilityQuery.data, availabilityDate, watchedRoomId]);
 
@@ -509,7 +576,9 @@ export default function BookingsPage() {
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)] xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="glass-panel min-w-0 rounded-[32px] p-6 sm:p-8">
-          <h1 className="text-3xl font-semibold text-(--color-deep)">Skapa bokning</h1>
+          <h1 className="text-3xl font-semibold text-(--color-deep)">
+            Skapa bokning
+          </h1>
           <p className="mt-2 text-sm text-(--color-forest)">
             Endast tillgängliga tider accepteras.
           </p>
@@ -553,18 +622,18 @@ export default function BookingsPage() {
               ))}
             </div>
           </div>
-            <form
-              className="mt-6 space-y-4"
-              onSubmit={handleSubmit((data) => {
-                if (mode === "ENKEL") {
-                  if (!isAuthenticated) {
-                    persistDraft(data);
-                    router.push("/login?redirect=/bookings");
-                    return;
-                  }
-                  const payload: BookingInput = {
-                    roomId: data.roomId,
-                    startTime: `${data.startDate}T${data.startTime}:00`,
+          <form
+            className="mt-6 space-y-4"
+            onSubmit={handleSubmit((data) => {
+              if (mode === "ENKEL") {
+                if (!isAuthenticated) {
+                  persistDraft(data);
+                  router.push("/login?redirect=/bookings");
+                  return;
+                }
+                const payload: BookingInput = {
+                  roomId: data.roomId,
+                  startTime: `${data.startDate}T${data.startTime}:00`,
                   endTime: `${data.endDate}T${data.endTime}:00`,
                 };
                 mutation.mutate(payload);
@@ -577,7 +646,7 @@ export default function BookingsPage() {
                 selectedDates,
                 recurrenceType,
                 selectedWeekdays,
-                monthDay
+                monthDay,
               );
 
               setSummary({ intervals, conflicts: null });
@@ -610,7 +679,9 @@ export default function BookingsPage() {
                   </option>
                 ))}
               </select>
-              {errors.roomId && <InlineHint message={errors.roomId.message ?? ""} />}
+              {errors.roomId && (
+                <InlineHint message={errors.roomId.message ?? ""} />
+              )}
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_130px]">
               <div className="min-w-0">
@@ -629,7 +700,9 @@ export default function BookingsPage() {
                     />
                   )}
                 />
-                {errors.startDate && <InlineHint message={errors.startDate.message ?? ""} />}
+                {errors.startDate && (
+                  <InlineHint message={errors.startDate.message ?? ""} />
+                )}
               </div>
               <div className="min-w-0">
                 <label className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-stone)">
@@ -647,7 +720,9 @@ export default function BookingsPage() {
                     )}
                   />
                 </div>
-                {errors.startTime && <InlineHint message={errors.startTime.message ?? ""} />}
+                {errors.startTime && (
+                  <InlineHint message={errors.startTime.message ?? ""} />
+                )}
               </div>
               <div className="min-w-0">
                 <label className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-stone)">
@@ -665,7 +740,9 @@ export default function BookingsPage() {
                     />
                   )}
                 />
-                {errors.endDate && <InlineHint message={errors.endDate.message ?? ""} />}
+                {errors.endDate && (
+                  <InlineHint message={errors.endDate.message ?? ""} />
+                )}
               </div>
               <div className="min-w-0">
                 <label className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-stone)">
@@ -683,7 +760,9 @@ export default function BookingsPage() {
                     )}
                   />
                 </div>
-                {errors.endTime && <InlineHint message={errors.endTime.message ?? ""} />}
+                {errors.endTime && (
+                  <InlineHint message={errors.endTime.message ?? ""} />
+                )}
               </div>
             </div>
 
@@ -705,7 +784,7 @@ export default function BookingsPage() {
                     onClick={() => {
                       if (!pendingDate) return;
                       setSelectedDates((prev) =>
-                        uniqueSortedDates([...prev, pendingDate])
+                        uniqueSortedDates([...prev, pendingDate]),
                       );
                       setPendingDate("");
                     }}
@@ -724,7 +803,9 @@ export default function BookingsPage() {
                       key={date}
                       type="button"
                       onClick={() =>
-                        setSelectedDates((prev) => prev.filter((item) => item !== date))
+                        setSelectedDates((prev) =>
+                          prev.filter((item) => item !== date),
+                        )
                       }
                       className="rounded-full border border-[rgba(29,42,56,0.12)] bg-white px-3 py-1 text-xs text-(--color-ink) shadow-[0_6px_20px_rgba(29,42,56,0.08)]"
                     >
@@ -754,7 +835,9 @@ export default function BookingsPage() {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setRecurrenceType(option.value as RecurrenceType)}
+                      onClick={() =>
+                        setRecurrenceType(option.value as RecurrenceType)
+                      }
                       className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] transition ${
                         recurrenceType === option.value
                           ? "bg-(--color-deep) text-white"
@@ -778,7 +861,7 @@ export default function BookingsPage() {
                             setSelectedWeekdays((prev) =>
                               active
                                 ? prev.filter((value) => value !== day.value)
-                                : [...prev, day.value]
+                                : [...prev, day.value],
                             )
                           }
                           className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] transition ${
@@ -831,18 +914,21 @@ export default function BookingsPage() {
                     : ""}
                 </p>
                 {availabilityQuery.isLoading && (
-                  <p className="mt-3 text-xs text-(--color-stone)">Hämtar tider...</p>
+                  <p className="mt-3 text-xs text-(--color-stone)">
+                    Hämtar tider...
+                  </p>
                 )}
                 {availabilityQuery.isError && (
                   <p className="mt-3 text-xs text-red-500">
                     {(availabilityQuery.error as Error).message}
                   </p>
                 )}
-                {!availabilityQuery.isLoading && availabilitySlots.length === 0 && (
-                  <p className="mt-3 text-xs text-(--color-stone)">
-                    Inga slotar tillgängliga.
-                  </p>
-                )}
+                {!availabilityQuery.isLoading &&
+                  availabilitySlots.length === 0 && (
+                    <p className="mt-3 text-xs text-(--color-stone)">
+                      Inga slotar tillgängliga.
+                    </p>
+                  )}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {availabilitySlots.map((slot) => (
                     <span
@@ -879,113 +965,129 @@ export default function BookingsPage() {
               <InlineHint message="Du kan fylla i formuläret nu. Inloggning krävs först när du skickar bokningen." />
             )}
           </form>
-          {summary && (mode === "PERIOD" || mode === "VALDA_DATUM" || mode === "ATERKOMMANDE") && (
-            <div className="mt-6 rounded-3xl border border-[rgba(29,42,56,0.12)] bg-white/70 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-stone)">
-                Sammanfattning
-              </p>
-              <p className="mt-2 text-sm text-(--color-forest)">
-                {summary.intervals.length} bokning(ar) planerade.
-              </p>
-              <div className="mt-3 space-y-1 text-xs text-(--color-ink)">
-                {summary.intervals.slice(0, 6).map((interval) => (
-                  <p key={`${interval.startAt}-${interval.endAt}`}>
-                    {new Date(interval.startAt).toLocaleDateString("sv-SE", {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                    })}{" "}
-                    {new Date(interval.startAt).toLocaleTimeString("sv-SE", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}{" "}
-                    –{" "}
-                    {new Date(interval.endAt).toLocaleTimeString("sv-SE", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                ))}
-                {summary.intervals.length > 6 && (
-                  <p className="text-(--color-stone)">
-                    +{summary.intervals.length - 6} till
-                  </p>
-                )}
-              </div>
-              {summary.conflicts && summary.conflicts.length > 0 && (
-                <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-600">
-                  <p className="font-semibold uppercase tracking-[0.2em]">Konflikter</p>
-                  {summary.conflicts.map((conflict) => (
-                    <p key={`${conflict.startAt}-${conflict.endAt}`}>
-                      {new Date(conflict.startAt).toLocaleDateString("sv-SE")}{" "}
-                      {new Date(conflict.startAt).toLocaleTimeString("sv-SE", {
+          {summary &&
+            (mode === "PERIOD" ||
+              mode === "VALDA_DATUM" ||
+              mode === "ATERKOMMANDE") && (
+              <div className="mt-6 rounded-3xl border border-[rgba(29,42,56,0.12)] bg-white/70 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-stone)">
+                  Sammanfattning
+                </p>
+                <p className="mt-2 text-sm text-(--color-forest)">
+                  {summary.intervals.length} bokning(ar) planerade.
+                </p>
+                <div className="mt-3 space-y-1 text-xs text-(--color-ink)">
+                  {summary.intervals.slice(0, 6).map((interval) => (
+                    <p key={`${interval.startAt}-${interval.endAt}`}>
+                      {new Date(interval.startAt).toLocaleDateString("sv-SE", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                      })}{" "}
+                      {new Date(interval.startAt).toLocaleTimeString("sv-SE", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}{" "}
                       –{" "}
-                      {new Date(conflict.endAt).toLocaleTimeString("sv-SE", {
+                      {new Date(interval.endAt).toLocaleTimeString("sv-SE", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
                     </p>
                   ))}
+                  {summary.intervals.length > 6 && (
+                    <p className="text-(--color-stone)">
+                      +{summary.intervals.length - 6} till
+                    </p>
+                  )}
                 </div>
-              )}
-              <Button
-                type="button"
-                className="mt-4 w-full"
-                disabled={
-                  bulkMutation.isPending ||
-                  !summary.conflicts ||
-                  summary.conflicts.length > 0 ||
-                  summary.intervals.length === 0
-                }
-                onClick={() => {
-                  if (!summary) return;
-                  if (!isAuthenticated) {
-                    persistDraft();
-                    router.push("/login?redirect=/bookings");
-                    return;
+                {summary.conflicts && summary.conflicts.length > 0 && (
+                  <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+                    <p className="font-semibold uppercase tracking-[0.2em]">
+                      Konflikter
+                    </p>
+                    {summary.conflicts.map((conflict) => (
+                      <p key={`${conflict.startAt}-${conflict.endAt}`}>
+                        {new Date(conflict.startAt).toLocaleDateString("sv-SE")}{" "}
+                        {new Date(conflict.startAt).toLocaleTimeString(
+                          "sv-SE",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}{" "}
+                        –{" "}
+                        {new Date(conflict.endAt).toLocaleTimeString("sv-SE", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  className="mt-4 w-full"
+                  disabled={
+                    bulkMutation.isPending ||
+                    !summary.conflicts ||
+                    summary.conflicts.length > 0 ||
+                    summary.intervals.length === 0
                   }
-                  bulkMutation.mutate({
-                    roomId: Number(watchedRoomId),
-                    intervals: summary.intervals,
-                    metadata: {
-                      mode,
-                      recurrenceType: mode === "ATERKOMMANDE" ? recurrenceType : undefined,
-                      selectedDates:
-                        mode === "VALDA_DATUM" ? uniqueSortedDates(selectedDates) : undefined,
-                      selectedWeekdays:
-                        mode === "ATERKOMMANDE" && recurrenceType === "WEEKLY"
-                          ? selectedWeekdays
-                          : undefined,
-                      monthDay:
-                        mode === "ATERKOMMANDE" && recurrenceType === "MONTHLY"
-                          ? monthDay
-                          : undefined,
-                    },
-                  });
-                }}
-              >
-                {bulkMutation.isPending ? "Skapar..." : "Bekräfta bokningar"}
-              </Button>
-              {bulkMutation.isError && (
-                <p className="mt-3 text-xs text-red-500">
-                  {(bulkMutation.error as Error).message}
-                </p>
-              )}
-            </div>
-          )}
+                  onClick={() => {
+                    if (!summary) return;
+                    if (!isAuthenticated) {
+                      persistDraft();
+                      router.push("/login?redirect=/bookings");
+                      return;
+                    }
+                    bulkMutation.mutate({
+                      roomId: Number(watchedRoomId),
+                      intervals: summary.intervals,
+                      metadata: {
+                        mode,
+                        recurrenceType:
+                          mode === "ATERKOMMANDE" ? recurrenceType : undefined,
+                        selectedDates:
+                          mode === "VALDA_DATUM"
+                            ? uniqueSortedDates(selectedDates)
+                            : undefined,
+                        selectedWeekdays:
+                          mode === "ATERKOMMANDE" && recurrenceType === "WEEKLY"
+                            ? selectedWeekdays
+                            : undefined,
+                        monthDay:
+                          mode === "ATERKOMMANDE" &&
+                          recurrenceType === "MONTHLY"
+                            ? monthDay
+                            : undefined,
+                      },
+                    });
+                  }}
+                >
+                  {bulkMutation.isPending ? "Skapar..." : "Bekräfta bokningar"}
+                </Button>
+                {bulkMutation.isError && (
+                  <p className="mt-3 text-xs text-red-500">
+                    {(bulkMutation.error as Error).message}
+                  </p>
+                )}
+              </div>
+            )}
           {validateMutation.isError && (
             <p className="mt-4 text-sm text-red-500">
               {(validateMutation.error as Error).message}
             </p>
           )}
           {mutation.isError && (
-            <p className="mt-4 text-sm text-red-500">{mutation.error.message}</p>
+            <p className="mt-4 text-sm text-red-500">
+              {mutation.error.message}
+            </p>
           )}
           {mutation.isSuccess && (
-            <p className="mt-4 text-sm text-(--color-forest)">Bokningen är skapad.</p>
+            <p className="mt-4 text-sm text-(--color-forest)">
+              Bokningen är skapad.
+            </p>
           )}
         </div>
 
@@ -993,9 +1095,13 @@ export default function BookingsPage() {
           <h2 className="text-2xl font-semibold text-(--color-deep)">
             {isAdmin ? "Alla bokningar" : "Dina bokningar"}
           </h2>
-          {isLoading && <p className="mt-6 text-sm text-(--color-stone)">Laddar...</p>}
+          {isLoading && (
+            <p className="mt-6 text-sm text-(--color-stone)">Laddar...</p>
+          )}
           {error && (
-            <p className="mt-6 text-sm text-red-500">{(error as Error).message}</p>
+            <p className="mt-6 text-sm text-red-500">
+              {(error as Error).message}
+            </p>
           )}
           <div className="mt-6 min-w-0 overflow-hidden rounded-3xl border border-[rgba(29,42,56,0.1)] bg-white/70">
             <div className="space-y-3 p-3 lg:hidden">
@@ -1014,23 +1120,35 @@ export default function BookingsPage() {
                           <span className="uppercase tracking-[0.16em] text-(--color-stone)">
                             Användare
                           </span>
-                          <span className="text-(--color-deep)">{booking.user?.username ?? "-"}</span>
+                          <span className="text-(--color-deep)">
+                            {booking.user?.username ?? "-"}
+                          </span>
                         </>
                       )}
-                      <span className="uppercase tracking-[0.16em] text-(--color-stone)">Datum</span>
-                      <span className="text-(--color-deep)">
-                        {new Date(booking.startTime).toLocaleDateString("sv-SE", {
-                          year: "numeric",
-                          month: "short",
-                          day: "2-digit",
-                        })}
+                      <span className="uppercase tracking-[0.16em] text-(--color-stone)">
+                        Datum
                       </span>
-                      <span className="uppercase tracking-[0.16em] text-(--color-stone)">Tid</span>
+                      <span className="text-(--color-deep)">
+                        {new Date(booking.startTime).toLocaleDateString(
+                          "sv-SE",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "2-digit",
+                          },
+                        )}
+                      </span>
+                      <span className="uppercase tracking-[0.16em] text-(--color-stone)">
+                        Tid
+                      </span>
                       <span className="text-(--color-stone)">
-                        {new Date(booking.startTime).toLocaleTimeString("sv-SE", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
+                        {new Date(booking.startTime).toLocaleTimeString(
+                          "sv-SE",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}{" "}
                         –{" "}
                         {new Date(booking.endTime).toLocaleTimeString("sv-SE", {
                           hour: "2-digit",
@@ -1042,7 +1160,9 @@ export default function BookingsPage() {
                       <Button
                         variant="outline"
                         className="px-2 py-2 text-[10px]"
-                        onClick={() => router.push(`/bookings/${booking.id}/edit`)}
+                        onClick={() =>
+                          router.push(`/bookings/${booking.id}/edit`)
+                        }
                       >
                         Redigera
                       </Button>
@@ -1062,7 +1182,9 @@ export default function BookingsPage() {
                   </article>
                 ))
               ) : (
-                <p className="px-2 py-8 text-center text-sm text-(--color-stone)">Inga bokningar ännu.</p>
+                <p className="px-2 py-8 text-center text-sm text-(--color-stone)">
+                  Inga bokningar ännu.
+                </p>
               )}
             </div>
 
@@ -1107,29 +1229,40 @@ export default function BookingsPage() {
                               </td>
                             )}
                             <td className="px-3 py-4 text-[10px] font-medium text-(--color-deep) sm:px-4">
-                              {new Date(booking.startTime).toLocaleDateString("sv-SE", {
-                                year: "numeric",
-                                month: "short",
-                                day: "2-digit",
-                              })}
+                              {new Date(booking.startTime).toLocaleDateString(
+                                "sv-SE",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "2-digit",
+                                },
+                              )}
                             </td>
                             <td className="px-3 py-4 text-[10px] uppercase tracking-[0.08em] text-(--color-stone) sm:px-4 whitespace-nowrap">
-                              {new Date(booking.startTime).toLocaleTimeString("sv-SE", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}{" "}
+                              {new Date(booking.startTime).toLocaleTimeString(
+                                "sv-SE",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}{" "}
                               –{" "}
-                              {new Date(booking.endTime).toLocaleTimeString("sv-SE", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {new Date(booking.endTime).toLocaleTimeString(
+                                "sv-SE",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
                             </td>
                             <td className="px-3 py-4 sm:px-4">
                               <div className="flex items-center justify-end gap-2">
                                 <Button
                                   variant="outline"
                                   className="px-2.5 py-2 text-[10px]"
-                                  onClick={() => router.push(`/bookings/${booking.id}/edit`)}
+                                  onClick={() =>
+                                    router.push(`/bookings/${booking.id}/edit`)
+                                  }
                                 >
                                   Redigera
                                 </Button>
@@ -1138,12 +1271,18 @@ export default function BookingsPage() {
                                   className="px-2.5 py-2 text-[10px]"
                                   disabled={deleteMutation.isPending}
                                   onClick={() => {
-                                    if (window.confirm("Vill du ta bort bokningen?")) {
+                                    if (
+                                      window.confirm(
+                                        "Vill du ta bort bokningen?",
+                                      )
+                                    ) {
                                       deleteMutation.mutate(booking.id);
                                     }
                                   }}
                                 >
-                                  {deleteMutation.isPending ? "Tar bort..." : "Ta bort"}
+                                  {deleteMutation.isPending
+                                    ? "Tar bort..."
+                                    : "Ta bort"}
                                 </Button>
                               </div>
                             </td>
@@ -1170,16 +1309,3 @@ export default function BookingsPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
