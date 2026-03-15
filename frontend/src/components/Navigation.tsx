@@ -21,7 +21,8 @@ export default function Navigation() {
 
   const { data: me } = useQuery({
     queryKey: ["me"],
-    queryFn: () => apiFetch<{ user: { username: string; role: string } }>("/api/me"),
+    queryFn: () =>
+      apiFetch<{ user: { username: string; role: string } }>("/api/me"),
     retry: false,
   });
 
@@ -35,7 +36,9 @@ export default function Navigation() {
   });
 
   const isAdmin = me?.user?.role === "Admin";
-  const links = isAdmin ? [...baseLinks, { href: "/admin", label: "Admin" }] : baseLinks;
+  const links = isAdmin
+    ? [...baseLinks, { href: "/admin", label: "Admin" }]
+    : baseLinks;
 
   return (
     <header className="relative z-40">
@@ -44,7 +47,7 @@ export default function Navigation() {
           href="/"
           className="max-w-[62vw] truncate text-lg font-semibold tracking-wide text-(--color-deep) sm:max-w-none sm:text-xl"
         >
-          Finita Hub
+          Finita Hubb
         </Link>
 
         <nav className="hidden items-center gap-8 text-base font-semibold text-(--color-forest) md:flex">
@@ -55,7 +58,7 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
               className={cn(
                 "group relative px-1 py-1 tracking-[0.01em] transition-colors duration-300 hover:text-(--color-ink)",
-                pathname === link.href && "text-(--color-ink)"
+                pathname === link.href && "text-(--color-ink)",
               )}
             >
               {link.label}
@@ -63,7 +66,9 @@ export default function Navigation() {
                 aria-hidden="true"
                 className={cn(
                   "pointer-events-none absolute left-0 right-0 -bottom-1 h-[2px] origin-left rounded-full bg-(--color-gold) transition duration-300",
-                  pathname === link.href ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100"
+                  pathname === link.href
+                    ? "scale-x-100 opacity-100"
+                    : "scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100",
                 )}
               />
             </Link>
@@ -83,7 +88,9 @@ export default function Navigation() {
             aria-label={mobileMenuOpen ? "Stäng meny" : "Öppna meny"}
             aria-expanded={mobileMenuOpen}
           >
-            <span className="text-lg leading-none">{mobileMenuOpen ? "×" : "☰"}</span>
+            <span className="text-lg leading-none">
+              {mobileMenuOpen ? "×" : "☰"}
+            </span>
           </button>
 
           {me?.user ? (
@@ -121,16 +128,16 @@ export default function Navigation() {
               )}
             </div>
           ) : (
-              <Link
-                href={`/login?redirect=${encodeURIComponent(pathname || "/")}`}
-                className="group hidden relative px-1 py-1 text-base font-semibold text-(--color-forest) transition-colors duration-300 hover:text-(--color-ink) md:inline"
-              >
-                Logga in
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute left-0 right-0 -bottom-1 h-[2px] origin-left rounded-full bg-(--color-gold) scale-x-0 opacity-0 transition duration-300 group-hover:scale-x-100 group-hover:opacity-100"
-                />
-              </Link>
+            <Link
+              href={`/login?redirect=${encodeURIComponent(pathname || "/")}`}
+              className="group hidden relative px-1 py-1 text-base font-semibold text-(--color-forest) transition-colors duration-300 hover:text-(--color-ink) md:inline"
+            >
+              Logga in
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 right-0 -bottom-1 h-[2px] origin-left rounded-full bg-(--color-gold) scale-x-0 opacity-0 transition duration-300 group-hover:scale-x-100 group-hover:opacity-100"
+              />
+            </Link>
           )}
         </div>
       </div>
@@ -146,7 +153,8 @@ export default function Navigation() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "rounded-xl px-3 py-2 transition hover:bg-[rgba(29,42,56,0.06)]",
-                    pathname === link.href && "bg-[rgba(29,42,56,0.08)] text-(--color-ink)"
+                    pathname === link.href &&
+                      "bg-[rgba(29,42,56,0.08)] text-(--color-ink)",
                   )}
                 >
                   {link.label}
@@ -157,7 +165,9 @@ export default function Navigation() {
             <div className="mt-4 border-t border-[rgba(29,42,56,0.1)] pt-4">
               {me?.user ? (
                 <div>
-                  <p className="break-all text-sm font-semibold text-(--color-deep)">{me.user.username}</p>
+                  <p className="break-all text-sm font-semibold text-(--color-deep)">
+                    {me.user.username}
+                  </p>
                   <p className="mt-1 text-xs uppercase tracking-[0.2em] text-(--color-stone)">
                     {me.user.role}
                   </p>
@@ -184,8 +194,3 @@ export default function Navigation() {
     </header>
   );
 }
-
-
-
-
-
