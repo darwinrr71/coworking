@@ -19,6 +19,16 @@
             "date": 1773536463996,
             "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-03-15.log",
             "hash": "147d9ac60eef06c8200c7e66c4b1c4693aabad1e69fe888f57d31c9c08c93f24"
+        },
+        {
+            "date": 1773657083904,
+            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-03-16.log",
+            "hash": "6259c172fe0516482e9b461e02bd24cc175845fe468ca7c15fcfe8320c6abca2"
+        },
+        {
+            "date": 1773734086006,
+            "name": "C:\\Darwin\\Desarrollo\\Proyectos\\Web\\coworking-platform\\backend\\src\\systemlogs\\app-2026-03-17.log",
+            "hash": "17e014a537fbeba50956634acd1c643f6d85020c46fee94e41020a1ba6fe2cbf"
         }
     ],
     "hashType": "sha256"
